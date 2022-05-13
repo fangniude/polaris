@@ -1,0 +1,8 @@
+com/eimos/polaris/service/RelationService.class
+com/eimos/polaris/entity/Relation.class
+com/eimos/polaris/repository/EntityRepository.class
+com/eimos/polaris/service/EntityService.class
+com/eimos/polaris/PolarisApplication.class
+com/eimos/polaris/repository/RelationRepository.class
+com/eimos/polaris/entity/Entity.class
+com/eimos/polaris/controller/BasicDataController.class

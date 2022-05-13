@@ -1,0 +1,8 @@
+/Users/lewis/boulder/polaris/application/src/main/java/com/eimos/polaris/controller/BasicDataController.java
+/Users/lewis/boulder/polaris/application/src/main/java/com/eimos/polaris/service/RelationService.java
+/Users/lewis/boulder/polaris/application/src/main/java/com/eimos/polaris/repository/RelationRepository.java
+/Users/lewis/boulder/polaris/application/src/main/java/com/eimos/polaris/entity/Relation.java
+/Users/lewis/boulder/polaris/application/src/main/java/com/eimos/polaris/repository/EntityRepository.java
+/Users/lewis/boulder/polaris/application/src/main/java/com/eimos/polaris/PolarisApplication.java
+/Users/lewis/boulder/polaris/application/src/main/java/com/eimos/polaris/entity/Entity.java
+/Users/lewis/boulder/polaris/application/src/main/java/com/eimos/polaris/service/EntityService.java
