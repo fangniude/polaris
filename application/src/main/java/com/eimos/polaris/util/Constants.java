@@ -9,28 +9,31 @@ import org.jooq.impl.DSL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author lipengpeng
  */
-public interface Constants {
+public final class Constants {
+
+    private Constants() {
+    }
+
     /**
      * 各类系统能表示的太大了，并且不统一，Java到 999_999_999 年，PostgreSQL的Timestamp到294276年；
      * <p>
      * 我们先定到1万年，但愿我们的系统活不到那个时候
      */
-    LocalDateTime MAX_DATE_TIME = LocalDateTime.of(9999, 12, 31, 23, 59, 59);
+    public static final LocalDateTime MAX_DATE_TIME = LocalDateTime.of(9999, 12, 31, 23, 59, 59);
     /**
      * 从主耶稣开始，差不多了
      */
-    LocalDateTime MIN_DATE_TIME = LocalDateTime.of(1000, 1, 1, 0, 0, 0);
+    public static final LocalDateTime MIN_DATE_TIME = LocalDateTime.of(1000, 1, 1, 0, 0, 0);
 
-    LocalDate MIN_DATE = LocalDate.of(1000, 1, 1);
-    LocalDate MAX_DATE = LocalDate.of(9999, 12, 31);
+    public static final LocalDate MIN_DATE = LocalDate.of(1000, 1, 1);
+    public static final LocalDate MAX_DATE = LocalDate.of(9999, 12, 31);
 
-    List<Attribute> BASIC_DATA_ATTRIBUTES = List.of(new Attribute("id", "ID", DataType.INTEGER, IndexType.UNIQUE, false),
-            new Attribute("code", "编码", DataType.SHORT_TEXT, IndexType.NAVIGABLE, false),
+    public static final List<Attribute> BASIC_DATA_ATTRIBUTES = List.of(new Attribute("id", "ID", DataType.INTEGER, IndexType.UNIQUE, false),
+            new Attribute("code", "编码", DataType.SHORT_TEXT, IndexType.UNIQUE, false),
             new Attribute("name", "名称", DataType.SHORT_TEXT, IndexType.NONE, false),
             new Attribute("effective_date", "生效日期", DataType.DATE, IndexType.NONE, false),
             new Attribute("expired_date", "过期日期", DataType.DATE, IndexType.NONE, false),
@@ -39,9 +42,9 @@ public interface Constants {
             new Attribute("create_time", "创建时间", DataType.DATE_TIME, IndexType.NONE, false),
             new Attribute("update_time", "更新时间", DataType.DATE_TIME, IndexType.NONE, false));
 
-    List<Field<Object>> BASIC_DATA_FIELDS = Constants.BASIC_DATA_ATTRIBUTES.stream()
+    public static final List<Field<Object>> BASIC_DATA_FIELDS = Constants.BASIC_DATA_ATTRIBUTES.stream()
             .map(Attribute::getName)
             .map(DSL::name)
             .map(DSL::field)
-            .collect(Collectors.toList());
+            .toList();
 }

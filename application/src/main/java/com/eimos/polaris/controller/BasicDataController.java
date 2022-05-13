@@ -46,7 +46,7 @@ public class BasicDataController {
     /**
      * 3. 删除没有使用的实体
      *
-     * @param code 实体编码
+     * @param code 实体名称
      */
     @DeleteMapping("/entity/{code}")
     public void drop(@PathVariable final String code,
@@ -57,18 +57,18 @@ public class BasicDataController {
     /**
      * 4. 某一基础数据实体 的 所有数据
      *
-     * @param entityCode 实体编码
+     * @param entityName 实体名称
      * @return 数据
      */
-    @GetMapping("/entity/{entityCode}")
-    public List<BasicDataVo> list(@PathVariable final String entityCode,
+    @GetMapping("/entity/{entityName}")
+    public List<BasicDataVo> list(@PathVariable final String entityName,
                                   @RequestParam(required = false, defaultValue = "") final String queryKey,
                                   @RequestParam(required = false, defaultValue = "10000") final int pageSize,
                                   @RequestParam(required = false, defaultValue = "1") final int pageIndex) {
         Preconditions.checkArgument(pageSize > 0, "pageSize must > 0");
         Preconditions.checkArgument(pageIndex > 0, "pageIndex must > 0");
-        
-        return this.service.list(entityCode, queryKey, pageIndex, pageSize);
+
+        return this.service.list(entityName, queryKey, pageIndex, pageSize);
     }
 
     /**
@@ -76,10 +76,10 @@ public class BasicDataController {
      *
      * @param basicData 数据
      */
-    @PostMapping("/entity/{entityCode}")
-    public void add(@PathVariable final String entityCode,
+    @PostMapping("/entity/{entityName}")
+    public void add(@PathVariable final String entityName,
                     @RequestBody final BasicDataVo basicData) {
-        this.service.add(entityCode, basicData);
+        this.service.add(entityName, basicData);
     }
 
     /**
@@ -87,10 +87,10 @@ public class BasicDataController {
      *
      * @param basicData 数据
      */
-    @PutMapping("/entity/{entityCode}")
-    public void modify(@PathVariable final String entityCode,
+    @PutMapping("/entity/{entityName}")
+    public void modify(@PathVariable final String entityName,
                        @RequestBody final BasicDataVo basicData) {
-        this.service.modify(entityCode, basicData);
+        this.service.modify(entityName, basicData);
     }
 
     /**
@@ -98,9 +98,9 @@ public class BasicDataController {
      *
      * @param code 数据编码
      */
-    @DeleteMapping("/entity/{entityCode}/{code}")
-    public void delete(@PathVariable final String entityCode,
+    @DeleteMapping("/entity/{entityName}/{code}")
+    public void delete(@PathVariable final String entityName,
                        @PathVariable final String code) {
-        this.service.delete(entityCode, code);
+        this.service.delete(entityName, code);
     }
 }

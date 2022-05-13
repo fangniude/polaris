@@ -21,6 +21,8 @@ import java.util.List;
  */
 @Service
 public class BasicDataService {
+    public static final String EFFECTIVE_DATE = "effective_date";
+    public static final String EXPIRED_DATE = "expired_date";
     private final MetadataService metadataService;
     private final DSLContext dslContext;
 
@@ -38,43 +40,43 @@ public class BasicDataService {
         this.metadataService.createEntity(e);
     }
 
-    public void drop(final String entityCode, final boolean force) {
-        this.metadataService.dropEntity(Namespace.BD, entityCode, force);
+    public void drop(final String entityName, final boolean force) {
+        this.metadataService.dropEntity(Namespace.BD, entityName, force);
     }
 
-    public List<BasicDataVo> list(final String entityCode, final String queryKey, final int pageIndex, final int pageSize) {
+    public List<BasicDataVo> list(final String entityName, final String queryKey, final int pageIndex, final int pageSize) {
         final List<? extends Field<? extends Serializable>> list = List.of(DSL.field("code", String.class),
                 DSL.field("name", String.class),
-                DSL.field("effective_date", LocalDate.class),
-                DSL.field("expired_date", LocalDate.class));
+                DSL.field(BasicDataService.EFFECTIVE_DATE, LocalDate.class),
+                DSL.field(BasicDataService.EXPIRED_DATE, LocalDate.class));
         return this.dslContext.select(list)
-                .from(DSL.name(Namespace.BD.schemaName(), entityCode))
+                .from(DSL.name(Namespace.BD.schemaName(), entityName))
                 .where(DSL.field("code").contains(DSL.value(queryKey))
                         .or(DSL.field("name").contains(DSL.value(queryKey))))
                 .limit(pageSize).offset((pageIndex - 1) * pageSize)
-                .fetch(record -> new BasicDataVo(record.get("code", String.class),
-                        record.get("name", String.class),
-                        record.get("effective_date", LocalDate.class),
-                        record.get("expired_date", LocalDate.class)));
+                .fetch(r -> new BasicDataVo(r.get("code", String.class),
+                        r.get("name", String.class),
+                        r.get(BasicDataService.EFFECTIVE_DATE, LocalDate.class),
+                        r.get(BasicDataService.EXPIRED_DATE, LocalDate.class)));
     }
 
-    public void add(final String entityCode, final BasicDataVo basicData) {
-        this.dslContext.insertInto(DSL.table(DSL.name(Namespace.BD.schemaName(), entityCode)), Constants.BASIC_DATA_FIELDS)
+    public void add(final String entityName, final BasicDataVo basicData) {
+        this.dslContext.insertInto(DSL.table(DSL.name(Namespace.BD.schemaName(), entityName)), Constants.BASIC_DATA_FIELDS)
                 .values(IdUtil.getSnowflakeNextId(), basicData.getCode(), basicData.getName(), basicData.getEffectiveDate(), basicData.getExpiredDate(), 0L, 0L, LocalDateTime.now(), LocalDateTime.now())
                 .execute();
     }
 
-    public void modify(final String entityCode, final BasicDataVo basicData) {
-        this.dslContext.update(DSL.table(DSL.name(Namespace.BD.schemaName(), entityCode)))
+    public void modify(final String entityName, final BasicDataVo basicData) {
+        this.dslContext.update(DSL.table(DSL.name(Namespace.BD.schemaName(), entityName)))
                 .set(DSL.field("name"), basicData.getName())
-                .set(DSL.field("effective_date"), basicData.getEffectiveDate())
-                .set(DSL.field("expired_date"), basicData.getExpiredDate())
+                .set(DSL.field(BasicDataService.EFFECTIVE_DATE), basicData.getEffectiveDate())
+                .set(DSL.field(BasicDataService.EXPIRED_DATE), basicData.getExpiredDate())
                 .where(DSL.field("code").equal(basicData.getCode()))
                 .execute();
     }
 
-    public void delete(final String entityCode, final String code) {
-        this.dslContext.delete(DSL.table(DSL.name(Namespace.BD.schemaName(), entityCode)))
+    public void delete(final String entityName, final String code) {
+        this.dslContext.delete(DSL.table(DSL.name(Namespace.BD.schemaName(), entityName)))
                 .where(DSL.field("code").equal(code))
                 .execute();
     }

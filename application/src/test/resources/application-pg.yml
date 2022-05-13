@@ -1,0 +1,41 @@
+title: Polaris
+
+server:
+  context: Polaris
+  port: 8080
+
+spring:
+  application:
+    name: Polaris
+  datasource:
+    url: jdbc:postgresql://172.16.5.85:5432/xuelei_polaris
+    username: postgres
+    password: Zzh!@7465671
+    driver-class-name: org.postgresql.Driver
+    schema:
+    initialization-mode: never
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
+    hibernate:
+      ddl-auto: update
+  jackson:
+    #    default-property-inclusion: non_null
+    date-format: yyyy-MM-dd HH:mm:ss
+    deserialization:
+      fail_on_unknown_properties: false
+    serialization:
+      write_dates_as_timestamps: false
+  mvc:
+    format:
+      date: yyyy-MM-dd
+  devtools:
+    restart:
+      enabled: false
+    livereload:
+      enabled: true
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+debug: true
