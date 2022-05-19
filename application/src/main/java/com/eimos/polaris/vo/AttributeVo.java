@@ -41,6 +41,15 @@ public class AttributeVo {
         this.ref = null;
     }
 
+    public static AttributeVo fromDomain(final Attribute attribute, final Reference reference) {
+        if (reference != null) {
+            return new AttributeVo(attribute.getName(), attribute.getComment(), attribute.getDataType(), attribute.getIndex(), attribute.getNullable(),
+                    true, reference.getOneToOne(), new Ref(reference.getRefNamespace(), reference.getRefEntity(), reference.getRefAttribute()));
+        } else {
+            return new AttributeVo(attribute.getName(), attribute.getComment(), attribute.getDataType(), attribute.getIndex(), attribute.getNullable());
+        }
+    }
+
     public Attribute toDomain() {
         return new Attribute(this.name, this.comment, this.dataType, this.index, this.nullable);
     }

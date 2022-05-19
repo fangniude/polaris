@@ -2,6 +2,7 @@ package com.eimos.polaris.service;
 
 import cn.hutool.core.util.IdUtil;
 import com.eimos.polaris.domain.Entity;
+import com.eimos.polaris.domain.Reference;
 import com.eimos.polaris.enums.MasterDataType;
 import com.eimos.polaris.enums.Namespace;
 import com.eimos.polaris.vo.AttributeVo;
@@ -34,20 +35,27 @@ public class MasterDataService {
         this.metadataService.createEntityWithRelation(entity.toEntity(), entity.toReferences());
     }
 
-    public void dropEntity(final String entityName) {
-        this.metadataService.dropEntity(Namespace.MD, entityName, false);
+    public void dropEntity(final MasterDataType masterData) {
+        this.metadataService.dropEntity(Namespace.MD, masterData.getName(), false);
     }
 
-    public void createAttribute(final String entityName, final AttributeVo attribute) {
-        this.metadataService.createAttribute(Namespace.MD, entityName, attribute);
+    public MasterDataEntityVo fetchEntity(final MasterDataType masterData) {
+        final Entity entity = this.metadataService.findEntityNonNull(Namespace.MD, masterData.getName());
+        final List<Reference> references = this.metadataService.findRelationsBySourceEntity(entity);
+
+        return MasterDataEntityVo.fromEntity(entity, references);
     }
 
-    public void alterAttribute(final String entityName, final AttributeVo attribute) {
-        this.metadataService.alterAttribute(Namespace.MD, entityName, attribute);
+    public void createAttribute(final MasterDataType masterData, final AttributeVo attribute) {
+        this.metadataService.createAttribute(Namespace.MD, masterData.getName(), attribute);
     }
 
-    public void dropAttribute(final String entityName, final String attributeName, final boolean force) {
-        this.metadataService.dropAttribute(Namespace.MD, entityName, attributeName, force);
+    public void alterAttribute(final MasterDataType masterData, final AttributeVo attribute) {
+        this.metadataService.alterAttribute(Namespace.MD, masterData.getName(), attribute);
+    }
+
+    public void dropAttribute(final MasterDataType masterData, final String attributeName, final boolean force) {
+        this.metadataService.dropAttribute(Namespace.MD, masterData.getName(), attributeName, force);
     }
 
     public List<Map<String, Object>> list(final MasterDataType masterData, final String queryKey, final int pageIndex, final int pageSize) {
@@ -67,14 +75,15 @@ public class MasterDataService {
                 .fetchMaps();
     }
 
-    public void add(final MasterDataType masterData, final Map<String, Object> data) {
+    public long add(final MasterDataType masterData, final Map<String, Object> data) {
         final List<Field<?>> fields = new ArrayList<>(data.size() + 1);
         final List<Field<?>> values = new ArrayList<>(data.size() + 1);
 
         fields.add(DSL.field(DSL.name("id"), Long.class));
         fields.add(DSL.field(DSL.name("create_time"), LocalDateTime.class));
         fields.add(DSL.field(DSL.name("update_time"), LocalDateTime.class));
-        values.add(DSL.value(IdUtil.getSnowflakeNextId()));
+        final long id = IdUtil.getSnowflakeNextId();
+        values.add(DSL.value(id));
         values.add(DSL.value(LocalDateTime.now()));
         values.add(DSL.value(LocalDateTime.now()));
 
@@ -86,6 +95,7 @@ public class MasterDataService {
         this.dslContext.insertInto(DSL.table(DSL.name(Namespace.MD.schemaName(), masterData.getName())), fields)
                 .values(values)
                 .execute();
+        return id;
     }
 
     public void modify(final MasterDataType masterData, final Map<String, Object> data) {
@@ -105,5 +115,16 @@ public class MasterDataService {
         this.dslContext.delete(DSL.table(DSL.name(Namespace.MD.schemaName(), masterData.getName())))
                 .where(DSL.field(DSL.name("id")).equal(id))
                 .execute();
+    }
+
+    public Map<String, Object> fetch(final MasterDataType masterData, final long id) {
+        final Entity entity = this.metadataService.findEntityNonNull(Namespace.MD, masterData.getName());
+
+        return this.dslContext.select(entity.getAttributes().stream()
+                        .map(a -> DSL.field(DSL.name(a.getName()), a.getDataType().javaClass))
+                        .toList())
+                .from(DSL.name(Namespace.MD.schemaName(), masterData.getName()))
+                .where(DSL.field("id").equal(id))
+                .fetchOneMap();
     }
 }

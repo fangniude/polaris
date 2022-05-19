@@ -5,7 +5,9 @@ import com.eimos.polaris.service.MasterDataService;
 import com.eimos.polaris.vo.AttributeVo;
 import com.eimos.polaris.vo.MasterDataEntityVo;
 import com.google.common.base.Preconditions;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
@@ -29,8 +31,23 @@ public class MasterDataController {
         this.service.createEntity(entity);
     }
 
-    public void dropEntity(final String entityName) {
-        this.service.dropEntity(entityName);
+    /**
+     * 0. 删除实体
+     *
+     * @param masterData 实体名称
+     */
+    public void dropEntity(final String masterData) {
+        this.service.dropEntity(MasterDataType.of(masterData));
+    }
+
+    /**
+     * 1. 查询主数据实体
+     *
+     * @return 实体，含外键
+     */
+    @GetMapping("/entity/{masterData}")
+    public MasterDataEntityVo fetch(@PathVariable final String masterData) {
+        return this.service.fetchEntity(MasterDataType.of(masterData));
     }
 
     /**
@@ -38,9 +55,9 @@ public class MasterDataController {
      *
      * @param attribute 属性
      */
-    @PostMapping("/entity/{entityName}/attribute")
-    public void create(@PathVariable final String entityName, @RequestBody final AttributeVo attribute) {
-        this.service.createAttribute(entityName, attribute);
+    @PostMapping("/entity/{masterData}/attribute")
+    public void create(@PathVariable final String masterData, @RequestBody final AttributeVo attribute) {
+        this.service.createAttribute(MasterDataType.of(masterData), attribute);
     }
 
     /**
@@ -48,22 +65,22 @@ public class MasterDataController {
      *
      * @param attribute 属性
      */
-    @PutMapping("/entity/{entityName}/attribute")
-    public void alter(@PathVariable final String entityName, @RequestBody final AttributeVo attribute) {
-        this.service.alterAttribute(entityName, attribute);
+    @PutMapping("/entity/{masterData}/attribute")
+    public void alter(@PathVariable final String masterData, @RequestBody final AttributeVo attribute) {
+        this.service.alterAttribute(MasterDataType.of(masterData), attribute);
     }
 
     /**
      * 4. 删除没有使用的属性，系统自带的不能删除
      *
-     * @param entityName    实体编码
+     * @param masterData    实体编码
      * @param attributeName 属性名称
      */
-    @DeleteMapping("/entity/{entityName}/attribute/{attributeName}")
-    public void drop(@PathVariable final String entityName,
+    @DeleteMapping("/entity/{masterData}/attribute/{attributeName}")
+    public void drop(@PathVariable final String masterData,
                      @PathVariable final String attributeName,
                      @RequestParam(required = false, defaultValue = "false") final boolean force) {
-        this.service.dropAttribute(entityName, attributeName, force);
+        this.service.dropAttribute(MasterDataType.of(masterData), attributeName, force);
     }
 
 
@@ -88,11 +105,12 @@ public class MasterDataController {
      * 6. 新增 某一主数据实体的 一行数据
      *
      * @param data 数据
+     * @return id
      */
     @PostMapping("/{masterData}")
-    public void add(@PathVariable final String masterData,
+    public long add(@PathVariable final String masterData,
                     @RequestBody final Map<String, Object> data) {
-        this.service.add(MasterDataType.of(masterData), data);
+        return this.service.add(MasterDataType.of(masterData), data);
     }
 
     /**
@@ -115,5 +133,23 @@ public class MasterDataController {
     public void delete(@PathVariable final String masterData,
                        @PathVariable final long id) {
         this.service.delete(MasterDataType.of(masterData), id);
+    }
+
+    /**
+     * 9. 获取 某一主数据实体的 一行数据
+     *
+     * @param masterData 主数据
+     * @return 行数据
+     */
+    @GetMapping("/{masterData}/{id}")
+    public Map<String, Object> fetch(@PathVariable final String masterData,
+                                     @PathVariable final long id) {
+        final Map<String, Object> map = this.service.fetch(MasterDataType.of(masterData), id);
+        if (map == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "ID Not Found");
+        } else {
+            return map;
+        }
     }
 }

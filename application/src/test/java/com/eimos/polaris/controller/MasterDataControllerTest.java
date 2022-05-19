@@ -12,9 +12,11 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -35,27 +37,28 @@ class MasterDataControllerTest {
     void test() {
         this.prepareBasicData();
 
+        // 0. 产品不存在，抛出异常
+        Assertions.assertThrowsExactly(IllegalArgumentException.class, () -> this.controller.fetch(MasterDataType.PRODUCT.getName()));
+
         // 1. 创建 产品表
         this.controller.createEntity(MasterDataType.PRODUCT.basicModel());
+        Assertions.assertNotNull(this.controller.fetch(MasterDataType.PRODUCT.getName()));
 
         // 2. 新增列
         final String entityName = MasterDataType.PRODUCT.getName();
         this.controller.create(entityName,
                 new AttributeVo("香水调型", "香水调型", DataType.SHORT_TEXT, IndexType.NONE, true,
                         true, false, new AttributeVo.Ref(Namespace.BD, "香水调型", "code")));
+        Assertions.assertTrue(this.controller.fetch(MasterDataType.PRODUCT.getName()).getAttributes().stream().anyMatch(a -> Objects.equals(a.getName(), "香水调型")));
 
         // 3. 新增数据，并查询
-        this.controller.add(entityName, Map.of("产品名称", "abc",
+        final long id = this.controller.add(entityName, Map.of("产品名称", "abc",
+                "源系统编码", "01",
                 "产品用途场景", "01",
                 "产品功能", "01",
                 "产品功能实现方式", "01",
                 "香水调型", "01"));
-        final List<Map<String, Object>> list = this.controller.list(entityName, "", 100, 1);
-        Assertions.assertNotNull(list);
-        Assertions.assertEquals(list.size(), 1);
-        final Map<String, Object> map = list.get(0);
-        final Object id = map.get("id");
-        Assertions.assertNotNull(id);
+        final Map<String, Object> map = this.controller.fetch(entityName, id);
         Assertions.assertEquals(map.get("产品用途场景"), "01");
         Assertions.assertEquals(map.get("产品功能"), "01");
         Assertions.assertEquals(map.get("产品功能实现方式"), "01");
@@ -64,26 +67,20 @@ class MasterDataControllerTest {
         // 4. 修改数据，并查询
         this.controller.modify(entityName, Map.of("id", id,
                 "产品名称", "abc",
+                "源系统编码", "02",
                 "产品用途场景", "02",
                 "产品功能", "02",
                 "产品功能实现方式", "02",
                 "香水调型", "02"));
-        final List<Map<String, Object>> list1 = this.controller.list(entityName, "", 100, 1);
-
-        Assertions.assertNotNull(list1);
-        Assertions.assertEquals(list1.size(), 1);
-        final Map<String, Object> map1 = list1.get(0);
-        final Object id1 = map1.get("id");
-        Assertions.assertNotNull(id1);
+        final Map<String, Object> map1 = this.controller.fetch(entityName, id);
         Assertions.assertEquals(map1.get("产品用途场景"), "02");
         Assertions.assertEquals(map1.get("产品功能"), "02");
         Assertions.assertEquals(map1.get("产品功能实现方式"), "02");
         Assertions.assertEquals(map1.get("香水调型"), "02");
 
         // 5. 删除数据，并查询
-        this.controller.delete(entityName, Long.parseLong(id1.toString()));
-        final List<Map<String, Object>> list2 = this.controller.list(entityName, "", 100, 1);
-        Assertions.assertEquals(list2.size(), 0);
+        this.controller.delete(entityName, id);
+        Assertions.assertThrows(ResponseStatusException.class, () -> this.controller.fetch(entityName, id));
 
         // 6. 修改列
         this.controller.alter(entityName, new AttributeVo("香水调型", "香水调型", DataType.SHORT_TEXT, IndexType.NONE, true,
@@ -91,6 +88,7 @@ class MasterDataControllerTest {
 
         // 7. 删除列
         this.controller.drop(entityName, "香水调型", false);
+        Assertions.assertFalse(this.controller.fetch(MasterDataType.PRODUCT.getName()).getAttributes().stream().anyMatch(a -> Objects.equals(a.getName(), "香水调型")));
 
         // 8. 删除实体
         this.controller.dropEntity(entityName);

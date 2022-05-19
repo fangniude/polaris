@@ -41,6 +41,10 @@ public class Reference {
         return new RelationEntity(IdUtil.getSnowflakeNextId(), this.getSourceEntityId(), this.getReferenceEntityId(), this.oneToOne, this.toMapping(), LocalDateTime.now(), Constants.MAX_DATE_TIME, "", "");
     }
 
+    public static Reference fromEntityRelation() {
+        return new Reference();
+    }
+
     private Long getSourceEntityId() {
         return this.getEntityId(this.sourceNamespace, this.sourceEntity);
     }
@@ -63,6 +67,10 @@ public class Reference {
 
     private String toMapping() {
         return JSONUtil.toJsonStr(new EqualMapping(this.sourceAttribute, this.refAttribute));
+    }
+
+    public static EqualMapping fromMapping(final String mapping) {
+        return JSONUtil.toBean(mapping, EqualMapping.class);
     }
 
 }

@@ -23,8 +23,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author lipengpeng
@@ -45,6 +48,7 @@ public class MetadataService {
         final List<EntityEntity> list = this.entityRepository.findByNameContainsOrCommentContains(queryKey, queryKey, PageRequest.of(pageIndex - 1, pageSize));
 
         return list.stream()
+                .filter(e -> e.getNamespace() == Namespace.BD)
                 .map(EntityVo::valueOf)
                 .toList();
     }
@@ -219,5 +223,23 @@ public class MetadataService {
         } else {
             throw new IllegalArgumentException(String.format("entity not exists, namespace: %s, entity: %s", namespace, entityName));
         }
+    }
+
+    public List<Reference> findRelationsBySourceEntity(final Entity entity) {
+        final List<RelationEntity> relationEntities = this.relationRepository.findBySourceEntityId(entity.getId());
+
+        final List<Long> refEntityIds = relationEntities.stream().map(RelationEntity::getReferenceEntityId).collect(Collectors.toList());
+
+        final List<EntityEntity> entityList = this.entityRepository.findAllById(refEntityIds);
+        final Map<Long, EntityEntity> entityMap = entityList.stream().collect(Collectors.toMap(EntityEntity::getId, Function.identity()));
+
+        return relationEntities.stream()
+                .map(r -> {
+                    final EqualMapping mapping = Reference.fromMapping(r.getMapping());
+                    final EntityEntity refEntity = entityMap.get(r.getReferenceEntityId());
+                    return new Reference(entity.getNamespace(), entity.getName(), mapping.getSourceAttributeName(), refEntity.getNamespace(), refEntity.getName(), mapping.getReferenceAttributeName(), r.getOneToOne());
+                })
+                .toList();
+
     }
 }
