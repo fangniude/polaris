@@ -13,7 +13,7 @@ spring:
     password: Zzh!@7465671
     driver-class-name: org.postgresql.Driver
   jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    database-platform: org.hibernate.dialect.PostgreSQL95Dialect
     show-sql: false
     hibernate:
       ddl-auto: update

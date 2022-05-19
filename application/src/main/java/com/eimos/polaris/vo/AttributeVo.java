@@ -52,6 +52,23 @@ public class AttributeVo {
                 this.oneToOne);
     }
 
+    public static AttributeVo id() {
+        return new AttributeVo("id", "ID", DataType.INTEGER, IndexType.UNIQUE, false);
+    }
+
+    public static AttributeVo createTime() {
+        return new AttributeVo("create_time", "创建时间", DataType.DATE_TIME, IndexType.NONE, false);
+    }
+
+    public static AttributeVo updateTime() {
+        return new AttributeVo("update_time", "更新时间", DataType.DATE_TIME, IndexType.NONE, false);
+    }
+
+    public static AttributeVo fk2bd(final String name) {
+        return new AttributeVo(name, name, DataType.SHORT_TEXT, IndexType.NONE, true,
+                true, false, new AttributeVo.Ref(Namespace.BD, name, "code"));
+    }
+
     @Getter
     @Setter
     @Accessors(chain = true)

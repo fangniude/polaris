@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.eimos.polaris.vo.AttributeVo.*;
+
 /**
  * @author lipengpeng
  */
@@ -20,41 +22,35 @@ public enum MasterDataType {
      * 产品
      */
     PRODUCT(Constants.PRODUCT, Constants.PRODUCT,
-            List.of(new AttributeVo(Constants.ID, Constants.ID_CN, DataType.INTEGER, IndexType.UNIQUE, false),
-                    new AttributeVo(Constants.CREATE_TIME, Constants.CREATE_TIME_CN, DataType.DATE_TIME, IndexType.NONE, false),
-                    new AttributeVo(Constants.UPDATE_TIME, Constants.UPDATE_TIME_CN, DataType.DATE_TIME, IndexType.NONE, false),
+            List.of(id(),
+                    createTime(),
+                    updateTime(),
                     new AttributeVo(Constants.PRODUCT_NAME, Constants.PRODUCT_NAME, DataType.SHORT_TEXT, IndexType.NAVIGABLE, false),
-                    new AttributeVo(Constants.PRODUCT_USAGE, Constants.PRODUCT_USAGE, DataType.SHORT_TEXT, IndexType.NONE, true,
-                            true, false, new AttributeVo.Ref(Namespace.BD, Constants.PRODUCT_USAGE, Constants.CODE)),
-                    new AttributeVo(Constants.PRODUCT_FEATURE, Constants.PRODUCT_FEATURE, DataType.SHORT_TEXT, IndexType.NONE, true,
-                            true, false, new AttributeVo.Ref(Namespace.BD, Constants.PRODUCT_FEATURE, Constants.CODE)),
-                    new AttributeVo(Constants.PRODUCT_IMPLEMENTS, Constants.PRODUCT_IMPLEMENTS, DataType.SHORT_TEXT, IndexType.NONE, true,
-                            true, false, new AttributeVo.Ref(Namespace.BD, Constants.PRODUCT_IMPLEMENTS, Constants.CODE))),
+                    fk2bd(Constants.PRODUCT_USAGE),
+                    fk2bd(Constants.PRODUCT_FEATURE),
+                    fk2bd(Constants.PRODUCT_IMPLEMENTS)),
             List.of(Constants.PRODUCT_NAME)),
 
     /**
      * 物料
      */
     MATERIAL(Constants.MATERIAL, Constants.MATERIAL,
-            List.of(new AttributeVo(Constants.ID, Constants.ID_CN, DataType.INTEGER, IndexType.UNIQUE, false),
-                    new AttributeVo(Constants.CREATE_TIME, Constants.CREATE_TIME_CN, DataType.DATE_TIME, IndexType.NONE, false),
-                    new AttributeVo(Constants.UPDATE_TIME, Constants.UPDATE_TIME_CN, DataType.DATE_TIME, IndexType.NONE, false),
+            List.of(id(),
+                    createTime(),
+                    updateTime(),
                     new AttributeVo(Constants.MATERIAL_NAME, Constants.MATERIAL_NAME, DataType.SHORT_TEXT, IndexType.NAVIGABLE, false),
-                    new AttributeVo(Constants.MATERIAL_USAGE, Constants.MATERIAL_USAGE, DataType.SHORT_TEXT, IndexType.NONE, true,
-                            true, false, new AttributeVo.Ref(Namespace.BD, Constants.MATERIAL_USAGE, Constants.CODE)),
-                    new AttributeVo(Constants.MATERIAL_FEATURE, Constants.MATERIAL_FEATURE, DataType.SHORT_TEXT, IndexType.NONE, true,
-                            true, false, new AttributeVo.Ref(Namespace.BD, Constants.MATERIAL_FEATURE, Constants.CODE)),
-                    new AttributeVo(Constants.MATERIAL_IMPLEMENTS, Constants.MATERIAL_IMPLEMENTS, DataType.SHORT_TEXT, IndexType.NONE, true,
-                            true, false, new AttributeVo.Ref(Namespace.BD, Constants.MATERIAL_IMPLEMENTS, Constants.CODE))),
+                    fk2bd(Constants.MATERIAL_USAGE),
+                    fk2bd(Constants.MATERIAL_FEATURE),
+                    fk2bd(Constants.MATERIAL_IMPLEMENTS)),
             List.of(Constants.MATERIAL_NAME)),
 
     /**
      * 客户
      */
     CUSTOMER(Constants.CUSTOMER, Constants.CUSTOMER,
-            List.of(new AttributeVo(Constants.ID, Constants.ID_CN, DataType.INTEGER, IndexType.UNIQUE, false),
-                    new AttributeVo(Constants.CREATE_TIME, Constants.CREATE_TIME_CN, DataType.DATE_TIME, IndexType.NONE, false),
-                    new AttributeVo(Constants.UPDATE_TIME, Constants.UPDATE_TIME_CN, DataType.DATE_TIME, IndexType.NONE, false),
+            List.of(id(),
+                    createTime(),
+                    updateTime(),
                     new AttributeVo(Constants.CUSTOMER_FULL_NAME, Constants.CUSTOMER_FULL_NAME, DataType.SHORT_TEXT, IndexType.NAVIGABLE, false),
                     new AttributeVo(Constants.CUSTOMER_SHORT_NAME, Constants.CUSTOMER_SHORT_NAME, DataType.SHORT_TEXT, IndexType.NAVIGABLE, false),
                     new AttributeVo(Constants.CUSTOMER_INDUSTRY, Constants.CUSTOMER_INDUSTRY, DataType.SHORT_TEXT, IndexType.NONE, true,
@@ -65,9 +61,9 @@ public enum MasterDataType {
      * 客户法人
      */
     CUSTOMER_LEGAL(Constants.CUSTOMER_LEGAL, Constants.CUSTOMER_LEGAL,
-            List.of(new AttributeVo(Constants.ID, Constants.ID_CN, DataType.INTEGER, IndexType.UNIQUE, false),
-                    new AttributeVo(Constants.CREATE_TIME, Constants.CREATE_TIME_CN, DataType.DATE_TIME, IndexType.NONE, false),
-                    new AttributeVo(Constants.UPDATE_TIME, Constants.UPDATE_TIME_CN, DataType.DATE_TIME, IndexType.NONE, false),
+            List.of(id(),
+                    createTime(),
+                    updateTime(),
                     new AttributeVo(Constants.CUSTOMER_LEGAL_FULL_NAME, Constants.CUSTOMER_LEGAL_FULL_NAME, DataType.SHORT_TEXT, IndexType.NAVIGABLE, false),
                     new AttributeVo(Constants.CUSTOMER_LEGAL_SHORT_NAME, Constants.CUSTOMER_LEGAL_SHORT_NAME, DataType.SHORT_TEXT, IndexType.NAVIGABLE, false),
                     new AttributeVo(Constants.CUSTOMER_ID, Constants.CUSTOMER_ID, DataType.INTEGER, IndexType.NONE, false,
@@ -78,9 +74,9 @@ public enum MasterDataType {
      * 客户产品
      */
     CUSTOMER_PRODUCT(Constants.CUSTOMER_PRODUCT, Constants.CUSTOMER_PRODUCT,
-            List.of(new AttributeVo(Constants.ID, Constants.ID_CN, DataType.INTEGER, IndexType.UNIQUE, false),
-                    new AttributeVo(Constants.CREATE_TIME, Constants.CREATE_TIME_CN, DataType.DATE_TIME, IndexType.NONE, false),
-                    new AttributeVo(Constants.UPDATE_TIME, Constants.UPDATE_TIME_CN, DataType.DATE_TIME, IndexType.NONE, false),
+            List.of(id(),
+                    createTime(),
+                    updateTime(),
                     new AttributeVo(Constants.CUSTOMER_PRODUCT_NAME, Constants.CUSTOMER_PRODUCT_NAME, DataType.SHORT_TEXT, IndexType.NAVIGABLE, false),
                     new AttributeVo(Constants.CUSTOMER_ID, Constants.CUSTOMER_ID, DataType.INTEGER, IndexType.NONE, false,
                             true, false, new AttributeVo.Ref(Namespace.MD, Constants.CUSTOMER, Constants.ID)),
@@ -96,9 +92,9 @@ public enum MasterDataType {
      * 供应商
      */
     SUPPLIER(Constants.SUPPLIER, Constants.SUPPLIER,
-            List.of(new AttributeVo(Constants.ID, Constants.ID_CN, DataType.INTEGER, IndexType.UNIQUE, false),
-                    new AttributeVo(Constants.CREATE_TIME, Constants.CREATE_TIME_CN, DataType.DATE_TIME, IndexType.NONE, false),
-                    new AttributeVo(Constants.UPDATE_TIME, Constants.UPDATE_TIME_CN, DataType.DATE_TIME, IndexType.NONE, false),
+            List.of(id(),
+                    createTime(),
+                    updateTime(),
                     new AttributeVo(Constants.SUPPLIER_FULL_NAME, Constants.SUPPLIER_FULL_NAME, DataType.SHORT_TEXT, IndexType.NAVIGABLE, false),
                     new AttributeVo(Constants.SUPPLIER_SHORT_NAME, Constants.SUPPLIER_SHORT_NAME, DataType.SHORT_TEXT, IndexType.NAVIGABLE, false),
                     new AttributeVo(Constants.SUPPLIER_INDUSTRY, Constants.SUPPLIER_INDUSTRY, DataType.SHORT_TEXT, IndexType.NONE, true,
@@ -109,9 +105,9 @@ public enum MasterDataType {
      * 供应商法人
      */
     SUPPLIER_LEGAL(Constants.SUPPLIER_LEGAL, Constants.SUPPLIER_LEGAL,
-            List.of(new AttributeVo(Constants.ID, Constants.ID_CN, DataType.INTEGER, IndexType.UNIQUE, false),
-                    new AttributeVo(Constants.CREATE_TIME, Constants.CREATE_TIME_CN, DataType.DATE_TIME, IndexType.NONE, false),
-                    new AttributeVo(Constants.UPDATE_TIME, Constants.UPDATE_TIME_CN, DataType.DATE_TIME, IndexType.NONE, false),
+            List.of(id(),
+                    createTime(),
+                    updateTime(),
                     new AttributeVo(Constants.SUPPLIER_LEGAL_FULL_NAME, Constants.SUPPLIER_LEGAL_FULL_NAME, DataType.SHORT_TEXT, IndexType.NAVIGABLE, false),
                     new AttributeVo(Constants.SUPPLIER_LEGAL_SHORT_NAME, Constants.SUPPLIER_LEGAL_SHORT_NAME, DataType.SHORT_TEXT, IndexType.NAVIGABLE, false),
                     new AttributeVo(Constants.CUSTOMER_ID, Constants.CUSTOMER_ID, DataType.INTEGER, IndexType.NONE, false,
@@ -122,9 +118,9 @@ public enum MasterDataType {
      * 供应商物料
      */
     SUPPLIER_MATERIAL(Constants.SUPPLIER_MATERIAL, Constants.SUPPLIER_MATERIAL,
-            List.of(new AttributeVo(Constants.ID, Constants.ID_CN, DataType.INTEGER, IndexType.UNIQUE, false),
-                    new AttributeVo(Constants.CREATE_TIME, Constants.CREATE_TIME_CN, DataType.DATE_TIME, IndexType.NONE, false),
-                    new AttributeVo(Constants.UPDATE_TIME, Constants.UPDATE_TIME_CN, DataType.DATE_TIME, IndexType.NONE, false),
+            List.of(id(),
+                    createTime(),
+                    updateTime(),
                     new AttributeVo(Constants.SUPPLIER_MATERIAL_NAME, Constants.SUPPLIER_MATERIAL_NAME, DataType.SHORT_TEXT, IndexType.NAVIGABLE, false),
                     new AttributeVo(Constants.SUPPLIER_ID, Constants.SUPPLIER_ID, DataType.INTEGER, IndexType.NONE, false,
                             true, false, new AttributeVo.Ref(Namespace.MD, Constants.SUPPLIER, Constants.ID)),
@@ -167,12 +163,7 @@ public enum MasterDataType {
 
     private static final class Constants {
         public static final String ID = "id";
-        public static final String ID_CN = "ID";
         public static final String CODE = "code";
-        public static final String CREATE_TIME = "create_time";
-        public static final String UPDATE_TIME = "update_time";
-        public static final String UPDATE_TIME_CN = "更新时间";
-        public static final String CREATE_TIME_CN = "创建时间";
 
         public static final String PRODUCT = "产品";
         public static final String PRODUCT_NAME = "产品名称";
