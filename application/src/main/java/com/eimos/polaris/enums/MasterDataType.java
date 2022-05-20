@@ -26,7 +26,7 @@ public enum MasterDataType {
                     createTime(),
                     updateTime(),
                     new AttributeVo(Constants.PRODUCT_NAME, Constants.PRODUCT_NAME, DataType.SHORT_TEXT, IndexType.NAVIGABLE, false),
-                    new AttributeVo(Constants.PRODUCT_SOURCE_CODE, Constants.PRODUCT_SOURCE_CODE, DataType.SHORT_TEXT, IndexType.UNIQUE, false),
+                    new AttributeVo(Constants.SOURCE_CODE, Constants.SOURCE_CODE, DataType.SHORT_TEXT, IndexType.UNIQUE, false),
                     fk2bd(Constants.PRODUCT_USAGE),
                     fk2bd(Constants.PRODUCT_FEATURE),
                     fk2bd(Constants.PRODUCT_IMPLEMENTS)),
@@ -40,7 +40,7 @@ public enum MasterDataType {
                     createTime(),
                     updateTime(),
                     new AttributeVo(Constants.MATERIAL_NAME, Constants.MATERIAL_NAME, DataType.SHORT_TEXT, IndexType.NAVIGABLE, false),
-                    new AttributeVo(Constants.MATERIAL_SOURCE_CODE, Constants.MATERIAL_SOURCE_CODE, DataType.SHORT_TEXT, IndexType.UNIQUE, false),
+                    new AttributeVo(Constants.SOURCE_CODE, Constants.SOURCE_CODE, DataType.SHORT_TEXT, IndexType.UNIQUE, false),
                     fk2bd(Constants.MATERIAL_USAGE),
                     fk2bd(Constants.MATERIAL_FEATURE),
                     fk2bd(Constants.MATERIAL_IMPLEMENTS)),
@@ -163,20 +163,19 @@ public enum MasterDataType {
         return new MasterDataEntityVo(IdUtil.getSnowflakeNextId(), Namespace.MD, this.name, this.comment, this.attributes);
     }
 
-    private static final class Constants {
+    public static final class Constants {
         public static final String ID = "id";
         public static final String CODE = "code";
+        public static final String SOURCE_CODE = "源系统编码";
 
         public static final String PRODUCT = "产品";
         public static final String PRODUCT_NAME = "产品名称";
-        public static final String PRODUCT_SOURCE_CODE = "源系统编码";
         public static final String PRODUCT_USAGE = "产品用途场景";
         public static final String PRODUCT_FEATURE = "产品功能";
         public static final String PRODUCT_IMPLEMENTS = "产品功能实现方式";
 
         public static final String MATERIAL = "物料";
         public static final String MATERIAL_NAME = "物料名称";
-        public static final String MATERIAL_SOURCE_CODE = "源系统编码";
         public static final String MATERIAL_USAGE = "物料用途场景";
         public static final String MATERIAL_FEATURE = "物料功能";
         public static final String MATERIAL_IMPLEMENTS = "物料功能实现方式";
@@ -214,5 +213,8 @@ public enum MasterDataType {
         public static final String INDUSTRY = "行业";
         public static final String TRADE_TYPE = "交易界面";
         public static final String GOODS_CYCLE = "典型货期";
+
+        private Constants() {
+        }
     }
 }

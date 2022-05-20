@@ -228,7 +228,7 @@ public class MetadataService {
     public List<Reference> findRelationsBySourceEntity(final Entity entity) {
         final List<RelationEntity> relationEntities = this.relationRepository.findBySourceEntityId(entity.getId());
 
-        final List<Long> refEntityIds = relationEntities.stream().map(RelationEntity::getReferenceEntityId).collect(Collectors.toList());
+        final List<Long> refEntityIds = relationEntities.stream().map(RelationEntity::getReferenceEntityId).toList();
 
         final List<EntityEntity> entityList = this.entityRepository.findAllById(refEntityIds);
         final Map<Long, EntityEntity> entityMap = entityList.stream().collect(Collectors.toMap(EntityEntity::getId, Function.identity()));
