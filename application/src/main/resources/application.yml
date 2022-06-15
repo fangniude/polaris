@@ -3,6 +3,8 @@ title: Polaris
 server:
   context: Polaris
   port: 8080
+  error:
+    include-message: always
 
 spring:
   application:

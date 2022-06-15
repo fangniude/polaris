@@ -45,7 +45,7 @@ public class MasterDataController {
      *
      * @return 实体，含外键
      */
-    @GetMapping("/entity/{masterData}")
+    @GetMapping("/entities/{masterData}")
     public MasterDataEntityVo fetch(@PathVariable final String masterData) {
         return this.service.fetchEntity(MasterDataType.of(masterData));
     }
@@ -55,7 +55,7 @@ public class MasterDataController {
      *
      * @param attribute 属性
      */
-    @PostMapping("/entity/{masterData}/attribute")
+    @PostMapping("/entities/{masterData}/attribute")
     public void create(@PathVariable final String masterData, @RequestBody final AttributeVo attribute) {
         this.service.createAttribute(MasterDataType.of(masterData), attribute);
     }
@@ -65,7 +65,7 @@ public class MasterDataController {
      *
      * @param attribute 属性
      */
-    @PutMapping("/entity/{masterData}/attribute")
+    @PutMapping("/entities/{masterData}/attribute")
     public void alter(@PathVariable final String masterData, @RequestBody final AttributeVo attribute) {
         this.service.alterAttribute(MasterDataType.of(masterData), attribute);
     }
@@ -76,7 +76,7 @@ public class MasterDataController {
      * @param masterData    实体编码
      * @param attributeName 属性名称
      */
-    @DeleteMapping("/entity/{masterData}/attribute/{attributeName}")
+    @DeleteMapping("/entities/{masterData}/attribute/{attributeName}")
     public void drop(@PathVariable final String masterData,
                      @PathVariable final String attributeName,
                      @RequestParam(required = false, defaultValue = "false") final boolean force) {
@@ -110,7 +110,19 @@ public class MasterDataController {
     @PostMapping("/{masterData}")
     public long add(@PathVariable final String masterData,
                     @RequestBody final Map<String, Object> data) {
-        return this.service.add(MasterDataType.of(masterData), data);
+        final MasterDataType md = MasterDataType.of(masterData);
+
+        for (final AttributeVo attr : md.requiredAttributes()) {
+            this.requireNonNull(data, attr.getName());
+        }
+
+        return this.service.add(md, data);
+    }
+
+    private void requireNonNull(final Map<String, Object> data, final String attrName) {
+        if (data.get(attrName) == null) {
+            throw new ResponseStatusException(HttpStatus.PRECONDITION_REQUIRED, "【%s】不能为空".formatted(attrName));
+        }
     }
 
     /**
@@ -121,7 +133,12 @@ public class MasterDataController {
     @PutMapping("/{masterData}")
     public void modify(@PathVariable final String masterData,
                        @RequestBody final Map<String, Object> data) {
-        this.service.modify(MasterDataType.of(masterData), data);
+        final MasterDataType md = MasterDataType.of(masterData);
+
+        for (final AttributeVo attr : md.requiredAttributesWithId()) {
+            this.requireNonNull(data, attr.getName());
+        }
+        this.service.modify(md, data);
     }
 
     /**

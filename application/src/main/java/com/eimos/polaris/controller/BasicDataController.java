@@ -38,7 +38,7 @@ public class BasicDataController {
      *
      * @param entity 实体
      */
-    @PostMapping("/entity")
+    @PostMapping("/entities")
     public void create(@RequestBody final EntityVo entity) {
         this.service.create(entity);
     }
@@ -48,7 +48,7 @@ public class BasicDataController {
      *
      * @param code 实体名称
      */
-    @DeleteMapping("/entity/{code}")
+    @DeleteMapping("/entities/{code}")
     public void drop(@PathVariable final String code,
                      @RequestParam(required = false, defaultValue = "false") final boolean force) {
         this.service.drop(code, force);
@@ -60,7 +60,7 @@ public class BasicDataController {
      * @param entityName 实体名称
      * @return 数据
      */
-    @GetMapping("/entity/{entityName}")
+    @GetMapping("/{entityName}")
     public List<BasicDataVo> list(@PathVariable final String entityName,
                                   @RequestParam(required = false, defaultValue = "") final String queryKey,
                                   @RequestParam(required = false, defaultValue = "10000") final int pageSize,
@@ -76,7 +76,7 @@ public class BasicDataController {
      *
      * @param basicData 数据
      */
-    @PostMapping("/entity/{entityName}")
+    @PostMapping("/{entityName}")
     public void add(@PathVariable final String entityName,
                     @RequestBody final BasicDataVo basicData) {
         this.service.add(entityName, basicData);
@@ -87,7 +87,7 @@ public class BasicDataController {
      *
      * @param basicData 数据
      */
-    @PutMapping("/entity/{entityName}")
+    @PutMapping("/{entityName}")
     public void modify(@PathVariable final String entityName,
                        @RequestBody final BasicDataVo basicData) {
         this.service.modify(entityName, basicData);
@@ -98,7 +98,7 @@ public class BasicDataController {
      *
      * @param code 数据编码
      */
-    @DeleteMapping("/entity/{entityName}/{code}")
+    @DeleteMapping("/{entityName}/{code}")
     public void delete(@PathVariable final String entityName,
                        @PathVariable final String code) {
         this.service.delete(entityName, code);

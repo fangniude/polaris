@@ -8,6 +8,7 @@ import lombok.Getter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -161,6 +162,20 @@ public enum MasterDataType {
 
     public MasterDataEntityVo basicModel() {
         return new MasterDataEntityVo(IdUtil.getSnowflakeNextId(), Namespace.MD, this.name, this.comment, this.attributes);
+    }
+
+    public List<AttributeVo> requiredAttributes() {
+        return this.attributes.stream()
+                .filter(a -> !a.getNullable())
+                .filter(a -> !Set.of("id", "create_time", "update_time").contains(a.getName()))
+                .toList();
+    }
+
+    public List<AttributeVo> requiredAttributesWithId() {
+        return this.attributes.stream()
+                .filter(a -> !a.getNullable())
+                .filter(a -> !Set.of("create_time", "update_time").contains(a.getName()))
+                .toList();
     }
 
     public static final class Constants {

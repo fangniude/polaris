@@ -1,0 +1,88 @@
+@hostname = 172.16.3.72
+@port = 8080
+@host = {{hostname}}:{{port}}
+@baseUrl = http://{{host}}/md
+@contentTypeJson = Content-Type: application/json
+@httpVersion = HTTP/1.1
+
+
+
+### 1. 创建新的属性
+POST {{baseUrl}}/entities/产品/attribute {{httpVersion}}
+{{contentTypeJson}}
+
+{
+    "name": "特征1",
+    "comment": "特征1",
+    "dataType": "SHORT_TEXT",
+    "index": "NONE",
+    "nullable": true,
+    "foreignKey": true,
+    "oneToOne": false,
+    "ref": {
+        "namespace": "BD",
+        "entityName": "颜色",
+        "attributeName": "code"
+    }
+}
+
+### 2. 修改属性
+PUT {{baseUrl}}/entities/产品/attribute {{httpVersion}}
+{{contentTypeJson}}
+
+{
+    "name": "特征1",
+    "comment": "特征1",
+    "dataType": "SHORT_TEXT",
+    "index": "NONE",
+    "nullable": true,
+    "foreignKey": true,
+    "oneToOne": false,
+    "ref": {
+        "namespace": "BD",
+        "entityName": "香水容量",
+        "attributeName": "code"
+    }
+}
+
+### 3. 删除没有使用的实体
+DELETE {{baseUrl}}/entities/产品/attribute/特征1 {{httpVersion}}
+
+
+
+
+
+
+
+### 4. 某一基础数据实体 的 所有数据
+GET {{baseUrl}}/产品?queryKey=&pageSize=100&pageIndex=1 {{httpVersion}}
+
+
+### 5. 新增 某一基础数据实体的 一行数据
+POST {{baseUrl}}/产品 {{httpVersion}}
+{{contentTypeJson}}
+
+{
+    // "产品名称": "某一款香水",
+    // "源系统编码": "abcde",
+    "产品用途场景": "01",
+    "产品功能": "01",
+    "产品功能实现方式": "01"
+}
+
+
+### 6. 修改 某一基础数据实体的 一行数据
+PUT {{baseUrl}}/产品 {{httpVersion}}
+{{contentTypeJson}}
+
+{
+    "id": 1537000615585132544,
+    "产品名称": "某一款香水abc",
+    "产品用途场景": "01",
+    "产品功能": "01",
+    "产品功能实现方式": "01"
+}
+
+
+### 7. 删除 某一基础数据实体的 一行数据
+DELETE {{baseUrl}}/产品/1537000615585132544 {{httpVersion}}

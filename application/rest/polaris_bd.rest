@@ -1,0 +1,54 @@
+@hostname = 172.16.3.72
+@port = 8080
+@host = {{hostname}}:{{port}}
+@baseUrl = http://{{host}}/bd
+@contentTypeJson = Content-Type: application/json
+@httpVersion = HTTP/1.1
+
+### 1. 所有基础数据表清单
+GET {{baseUrl}}/entities?queryKey=&pageSize=100&pageIndex=1 {{httpVersion}}
+
+
+### 2. 创建新的实体
+POST {{baseUrl}}/entities {{httpVersion}}
+{{contentTypeJson}}
+
+{
+    "name": "典型货期",
+    "comment": "典型货期"
+}
+
+### 3. 删除没有使用的实体
+DELETE {{baseUrl}}/entities/产品功能 {{httpVersion}}
+
+
+### 4. 某一基础数据实体 的 所有数据
+GET {{baseUrl}}/产品用途?queryKey=&pageSize=100&pageIndex=1 {{httpVersion}}
+
+
+### 5. 新增 某一基础数据实体的 一行数据
+POST {{baseUrl}}/香水容量 {{httpVersion}}
+{{contentTypeJson}}
+
+{
+    "code": "20",
+    "name": "35.0ml",
+    "effectiveDate": "1000-01-01",
+    "expiredDate": "9999-12-31"
+}
+
+
+### 6. 修改 某一基础数据实体的 一行数据
+PUT {{baseUrl}}/产品用途 {{httpVersion}}
+{{contentTypeJson}}
+
+{
+    "code": "01",
+    "name": "美妆",
+    "effectiveDate": "1000-01-01",
+    "expiredDate": "9999-12-31"
+}
+
+
+### 7. 删除 某一基础数据实体的 一行数据
+DELETE {{baseUrl}}/产品用途/01 {{httpVersion}}

@@ -88,23 +88,41 @@ public class MasterDataService {
      */
     @Transactional(isolation = Isolation.SERIALIZABLE, rollbackFor = Exception.class)
     public long add(final MasterDataType masterData, final Map<String, Object> data) {
-        // 校验 产品物料 有没有重复的
+
         if (masterData == MasterDataType.PRODUCT || masterData == MasterDataType.MATERIAL) {
             final MasterDataEntityVo entityVo = this.fetchEntity(masterData);
             final List<AttributeVo> attributes = entityVo.getAttributes();
             final List<AttributeVo> fkAttributes = attributes.stream().filter(AttributeVo::getForeignKey).toList();
 
+            // 校验 产品物料 有没有重复的
             final Map<String, Object> map = this.dslContext.select(attributes.stream()
                             .map(a -> DSL.field(DSL.name(a.getName()), a.getDataType().javaClass))
                             .toList())
                     .from(DSL.name(Namespace.MD.schemaName(), masterData.getName()))
                     .where(fkAttributes.stream()
-                            .map(a -> DSL.field(DSL.name(a.getName())).equal(DSL.value(data.get(a.getName()))))
+                            .map(a -> {
+                                final Object value = data.get(a.getName());
+                                if (value == null) {
+                                    return DSL.field(DSL.name(a.getName())).isNull();
+                                } else {
+                                    return DSL.field(DSL.name(a.getName())).equal(DSL.value(value));
+                                }
+                            })
                             .reduce(DSL.trueCondition(), DSL::and))
                     .limit(1)
                     .fetchOneMap();
             if (map != null) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, String.format("主数据已经存在，源系统编码：%s", map.get(MasterDataType.Constants.SOURCE_CODE)));
+                throw new ResponseStatusException(HttpStatus.CONFLICT, String.format("主数据已经存在，源系统编码：【%s】", map.get(MasterDataType.Constants.SOURCE_CODE)));
+            }
+
+            // 校验 源系统编码有没有重复
+            if (this.dslContext.select(attributes.stream()
+                            .map(a -> DSL.field(DSL.name(a.getName()), a.getDataType().javaClass))
+                            .toList())
+                    .from(DSL.name(Namespace.MD.schemaName(), masterData.getName()))
+                    .where(DSL.field(MasterDataType.Constants.SOURCE_CODE).equal(DSL.value(data.get(MasterDataType.Constants.SOURCE_CODE))))
+                    .limit(1).fetchOneMap() != null) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, String.format("源系统编码：【%s】已经存在", data.get(MasterDataType.Constants.SOURCE_CODE)));
             }
         }
 
@@ -135,23 +153,41 @@ public class MasterDataService {
         final Object id = data.get("id");
         Objects.requireNonNull(id, "id不能为空");
 
-        // 校验 产品物料 有没有重复的
         if (masterData == MasterDataType.PRODUCT || masterData == MasterDataType.MATERIAL) {
             final MasterDataEntityVo entityVo = this.fetchEntity(masterData);
             final List<AttributeVo> attributes = entityVo.getAttributes();
             final List<AttributeVo> fkAttributes = attributes.stream().filter(AttributeVo::getForeignKey).toList();
 
+            // 校验 产品物料 有没有重复的
             final Map<String, Object> map = this.dslContext.select(attributes.stream()
                             .map(a -> DSL.field(DSL.name(a.getName()), a.getDataType().javaClass))
                             .toList())
                     .from(DSL.name(Namespace.MD.schemaName(), masterData.getName()))
                     .where(DSL.field(DSL.name("id")).ne(DSL.value(id)).and(fkAttributes.stream()
-                            .map(a -> DSL.field(DSL.name(a.getName())).equal(DSL.value(data.get(a.getName()))))
+                            .map(a -> {
+                                final Object value = data.get(a.getName());
+                                if (value == null) {
+                                    return DSL.field(DSL.name(a.getName())).isNull();
+                                } else {
+                                    return DSL.field(DSL.name(a.getName())).equal(DSL.value(value));
+                                }
+                            })
                             .reduce(DSL.trueCondition(), DSL::and)))
                     .limit(1)
                     .fetchOneMap();
             if (map != null) {
                 throw new ResponseStatusException(HttpStatus.CONFLICT, String.format("主数据已经存在，源系统编码：%s", map.get(MasterDataType.Constants.SOURCE_CODE)));
+            }
+
+            // 校验 源系统编码有没有重复
+            if (this.dslContext.select(attributes.stream()
+                            .map(a -> DSL.field(DSL.name(a.getName()), a.getDataType().javaClass))
+                            .toList())
+                    .from(DSL.name(Namespace.MD.schemaName(), masterData.getName()))
+                    .where(DSL.field(DSL.name("id")).ne(DSL.value(id))
+                            .and(DSL.field(MasterDataType.Constants.SOURCE_CODE).equal(DSL.value(data.get(MasterDataType.Constants.SOURCE_CODE)))))
+                    .limit(1).fetchOneMap() != null) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, String.format("源系统编码：【%s】已经存在", data.get(MasterDataType.Constants.SOURCE_CODE)));
             }
         }
 
