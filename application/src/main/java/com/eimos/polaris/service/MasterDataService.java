@@ -10,9 +10,11 @@ import com.eimos.polaris.vo.MasterDataEntityVo;
 import org.jooq.Record;
 import org.jooq.*;
 import org.jooq.impl.DSL;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -85,6 +87,33 @@ public class MasterDataService {
      */
     @Transactional(isolation = Isolation.SERIALIZABLE, rollbackFor = Exception.class)
     public long add(final MasterDataType masterData, final Map<String, Object> data) {
+        if (masterData == MasterDataType.PRODUCT || masterData == MasterDataType.MATERIAL) {
+            final MasterDataEntityVo entityVo = this.fetchEntity(masterData);
+            final List<AttributeVo> attributes = entityVo.getAttributes();
+            final List<AttributeVo> fkAttributes = attributes.stream().filter(AttributeVo::getForeignKey).toList();
+
+            // 校验 产品物料 有没有重复的
+            final Map<String, Object> map = this.dslContext.select(attributes.stream()
+                            .map(a -> DSL.field(DSL.name(a.getName()), a.getDataType().javaClass))
+                            .toList())
+                    .from(DSL.name(Namespace.MD.schemaName(), masterData.getName()))
+                    .where(fkAttributes.stream()
+                            .map(a -> {
+                                final Object value = data.get(a.getName());
+                                if (value == null) {
+                                    return DSL.field(DSL.name(a.getName())).isNull();
+                                } else {
+                                    return DSL.field(DSL.name(a.getName())).equal(DSL.value(value));
+                                }
+                            })
+                            .reduce(DSL.trueCondition(), DSL::and))
+                    .limit(1)
+                    .fetchOneMap();
+            if (map != null) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, String.format("主数据已经存在，源系统编码：【%s】", map.get(MasterDataType.Constants.SOURCE_CODE)));
+            }
+        }
+
         final List<Field<?>> fields = new ArrayList<>(data.size() + 1);
         final List<Field<?>> values = new ArrayList<>(data.size() + 1);
 
@@ -109,6 +138,33 @@ public class MasterDataService {
 
     @Transactional(isolation = Isolation.SERIALIZABLE, rollbackFor = Exception.class)
     public void modify(final MasterDataType masterData, final Map<String, Object> data) {
+        if (masterData == MasterDataType.PRODUCT || masterData == MasterDataType.MATERIAL) {
+            final MasterDataEntityVo entityVo = this.fetchEntity(masterData);
+            final List<AttributeVo> attributes = entityVo.getAttributes();
+            final List<AttributeVo> fkAttributes = attributes.stream().filter(AttributeVo::getForeignKey).toList();
+
+            // 校验 产品物料 有没有重复的
+            final Map<String, Object> map = this.dslContext.select(attributes.stream()
+                            .map(a -> DSL.field(DSL.name(a.getName()), a.getDataType().javaClass))
+                            .toList())
+                    .from(DSL.name(Namespace.MD.schemaName(), masterData.getName()))
+                    .where(DSL.field(DSL.name("id")).ne(DSL.value(data.get("id"))).and(fkAttributes.stream()
+                            .map(a -> {
+                                final Object value = data.get(a.getName());
+                                if (value == null) {
+                                    return DSL.field(DSL.name(a.getName())).isNull();
+                                } else {
+                                    return DSL.field(DSL.name(a.getName())).equal(DSL.value(value));
+                                }
+                            })
+                            .reduce(DSL.trueCondition(), DSL::and)))
+                    .limit(1)
+                    .fetchOneMap();
+            if (map != null) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, String.format("主数据已经存在，源系统编码：%s", map.get(MasterDataType.Constants.SOURCE_CODE)));
+            }
+        }
+
         final UpdateSetFirstStep<Record> update = this.dslContext.update(DSL.table(DSL.name(Namespace.MD.schemaName(), masterData.getName())));
         UpdateSetMoreStep<Record> updateMore = update.set(DSL.field(DSL.name("update_time")), LocalDateTime.now());
         for (final Map.Entry<String, Object> entry : data.entrySet()) {
