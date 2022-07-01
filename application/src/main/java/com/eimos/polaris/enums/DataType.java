@@ -11,9 +11,9 @@ import java.time.LocalDateTime;
  */
 public enum DataType {
     /**
-     * 短文本，100个字符(含100)以内，认为是短文本
+     * 短文本，255个字符(含255)以内，认为是短文本
      */
-    SHORT_TEXT(SQLDataType.VARCHAR.length(100), String.class),
+    SHORT_TEXT(SQLDataType.VARCHAR.length(255), String.class),
     /**
      * 长文本
      */

@@ -14,7 +14,6 @@ import com.eimos.polaris.repository.RelationRepository;
 import com.eimos.polaris.vo.AttributeVo;
 import com.eimos.polaris.vo.EntityVo;
 import org.jooq.CreateTableColumnStep;
-import org.jooq.DDLQuery;
 import org.jooq.DSLContext;
 import org.jooq.Name;
 import org.jooq.impl.DSL;
@@ -60,13 +59,13 @@ public class MetadataService {
 
         // 2. 创建新的表
         // 2.1 如果 schema 不存在，先创建schema
-        final Name schemaName = DSL.name(e.getNamespace().schemaName());
-        try (final DDLQuery createSchemaIfNotExists = this.dslContext.createSchemaIfNotExists(schemaName)) {
-            createSchemaIfNotExists.execute();
-        }
+//        final Name schemaName = DSL.name(e.getNamespace().schemaName());
+//        try (final DDLQuery createSchemaIfNotExists = this.dslContext.createSchemaIfNotExists(schemaName)) {
+//            createSchemaIfNotExists.execute();
+//        }
 
         // 2.2 创建表，字段，表的备注
-        final Name tableName = DSL.name(e.getNamespace().schemaName(), e.getName());
+        final Name tableName = DSL.name(e.getNamespace().tableName(e.getName()));
         try (final CreateTableColumnStep createTable = this.dslContext.createTable(tableName)) {
             CreateTableColumnStep createColumns = createTable;
             for (final Attribute attribute : e.getAttributes()) {
@@ -97,7 +96,7 @@ public class MetadataService {
 
         // 2.4 增加中文备注
         for (final Attribute attribute : e.getAttributes()) {
-            this.dslContext.commentOnColumn(DSL.name(schemaName, tableName, DSL.name(attribute.getName())))
+            this.dslContext.commentOnColumn(DSL.name(tableName, DSL.name(attribute.getName())))
                     .is(attribute.getComment())
                     .execute();
         }
@@ -132,9 +131,9 @@ public class MetadataService {
                 }
             }
 
-            this.dslContext.dropTableIfExists(DSL.name(e.getNamespace().schemaName(), e.getName())).cascade().execute();
+            this.dslContext.dropTableIfExists(DSL.name(e.getNamespace().tableName(e.getName()))).cascade().execute();
         } else {
-            this.dslContext.dropTableIfExists(DSL.name(e.getNamespace().schemaName(), e.getName())).execute();
+            this.dslContext.dropTableIfExists(DSL.name(e.getNamespace().tableName(e.getName()))).execute();
         }
     }
 
@@ -152,15 +151,15 @@ public class MetadataService {
         this.relationRepository.save(ref.toRelation());
 
         // 2. 创建外键约束
-        this.dslContext.alterTable(DSL.name(ref.getSourceNamespace().schemaName(), ref.getSourceEntity()))
+        this.dslContext.alterTable(DSL.name(ref.getSourceNamespace().tableName(ref.getSourceEntity())))
                 .add(DSL.constraint(this.foreignKeyName(ref.getSourceNamespace(), ref.getSourceEntity(), ref.getSourceAttribute()))
                         .foreignKey(ref.getSourceAttribute())
-                        .references(DSL.name(ref.getRefNamespace().schemaName(), ref.getRefEntity()), DSL.name(ref.getRefAttribute())))
+                        .references(DSL.name(ref.getRefNamespace().tableName(ref.getRefEntity())), DSL.name(ref.getRefAttribute())))
                 .execute();
     }
 
     private String foreignKeyName(final Namespace sourceNamespace, final String sourceEntity, final String sourceAttribute) {
-        return String.format("fk_%s_%s_%s", sourceNamespace.schemaName(), sourceEntity, sourceAttribute);
+        return String.format("fk_%s_%s", sourceNamespace.tableName(sourceEntity), sourceAttribute);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -172,11 +171,11 @@ public class MetadataService {
         this.entityRepository.save(entity.toEntity());
 
         // 1.2 增加列
-        this.dslContext.alterTable(DSL.name(namespace.schemaName(), entityName))
+        this.dslContext.alterTable(DSL.name(namespace.tableName(entityName)))
                 .addColumn(attribute.getName(), attribute.toDomain().getDataType().dbDataType.nullable(attribute.getNullable()))
                 .execute();
         // 1.3 增加列的注释
-        this.dslContext.commentOnColumn(DSL.name(namespace.schemaName(), entityName, attribute.getName()))
+        this.dslContext.commentOnColumn(DSL.name(namespace.tableName(entityName), attribute.getName()))
                 .is(attribute.getComment())
                 .execute();
 
@@ -196,7 +195,7 @@ public class MetadataService {
             final EqualMapping mapping = JSONUtil.toBean(relation.getMapping(), EqualMapping.class);
             if (Objects.equals(mapping.getSourceAttributeName(), attributeName)) {
                 this.relationRepository.deleteById(relation.getId());
-                this.dslContext.alterTable(DSL.name(namespace.schemaName(), entityName))
+                this.dslContext.alterTable(DSL.name(namespace.tableName(entityName)))
                         .dropConstraint(DSL.constraint(this.foreignKeyName(namespace, entityName, attributeName)))
                         .execute();
             }
@@ -205,7 +204,7 @@ public class MetadataService {
         // 2. 实体：删除实体中的属性
         entity.deleteAttribute(attributeName);
         this.entityRepository.save(entity.toEntity());
-        this.dslContext.alterTable(DSL.name(namespace.schemaName(), entityName))
+        this.dslContext.alterTable(DSL.name(namespace.tableName(entityName)))
                 .dropColumn(attributeName)
                 .execute();
     }

@@ -67,7 +67,7 @@ public class MasterDataService {
         return this.dslContext.select(entity.getAttributes().stream()
                         .map(a -> DSL.field(DSL.name(a.getName()), a.getDataType().javaClass))
                         .toList())
-                .from(DSL.name(Namespace.MD.schemaName(), masterData.getName()))
+                .from(DSL.name(Namespace.MD.tableName(masterData.getName())))
                 .where(masterData.getSearchAttributes().stream()
                         .map(DSL::name)
                         .map(DSL::field)
@@ -96,7 +96,7 @@ public class MasterDataService {
             final Map<String, Object> map = this.dslContext.select(attributes.stream()
                             .map(a -> DSL.field(DSL.name(a.getName()), a.getDataType().javaClass))
                             .toList())
-                    .from(DSL.name(Namespace.MD.schemaName(), masterData.getName()))
+                    .from(DSL.name(Namespace.MD.tableName(masterData.getName())))
                     .where(fkAttributes.stream()
                             .map(a -> {
                                 final Object value = data.get(a.getName());
@@ -130,7 +130,7 @@ public class MasterDataService {
             values.add(DSL.value(entry.getValue()));
         }
 
-        this.dslContext.insertInto(DSL.table(DSL.name(Namespace.MD.schemaName(), masterData.getName())), fields)
+        this.dslContext.insertInto(DSL.table(DSL.name(Namespace.MD.tableName(masterData.getName()))), fields)
                 .values(values)
                 .execute();
         return id;
@@ -147,7 +147,7 @@ public class MasterDataService {
             final Map<String, Object> map = this.dslContext.select(attributes.stream()
                             .map(a -> DSL.field(DSL.name(a.getName()), a.getDataType().javaClass))
                             .toList())
-                    .from(DSL.name(Namespace.MD.schemaName(), masterData.getName()))
+                    .from(DSL.name(Namespace.MD.tableName(masterData.getName())))
                     .where(DSL.field(DSL.name("id")).ne(DSL.value(data.get("id"))).and(fkAttributes.stream()
                             .map(a -> {
                                 final Object value = data.get(a.getName());
@@ -165,7 +165,7 @@ public class MasterDataService {
             }
         }
 
-        final UpdateSetFirstStep<Record> update = this.dslContext.update(DSL.table(DSL.name(Namespace.MD.schemaName(), masterData.getName())));
+        final UpdateSetFirstStep<Record> update = this.dslContext.update(DSL.table(DSL.name(Namespace.MD.tableName(masterData.getName()))));
         UpdateSetMoreStep<Record> updateMore = update.set(DSL.field(DSL.name("update_time")), LocalDateTime.now());
         for (final Map.Entry<String, Object> entry : data.entrySet()) {
             updateMore = updateMore.set(DSL.field(DSL.name(entry.getKey())), entry.getValue());
@@ -175,7 +175,7 @@ public class MasterDataService {
     }
 
     public void delete(final MasterDataType masterData, final long id) {
-        this.dslContext.delete(DSL.table(DSL.name(Namespace.MD.schemaName(), masterData.getName())))
+        this.dslContext.delete(DSL.table(DSL.name(Namespace.MD.tableName(masterData.getName()))))
                 .where(DSL.field(DSL.name("id")).equal(id))
                 .execute();
     }
@@ -186,7 +186,7 @@ public class MasterDataService {
         return this.dslContext.select(entity.getAttributes().stream()
                         .map(a -> DSL.field(DSL.name(a.getName()), a.getDataType().javaClass))
                         .toList())
-                .from(DSL.name(Namespace.MD.schemaName(), masterData.getName()))
+                .from(DSL.name(Namespace.MD.tableName(masterData.getName())))
                 .where(DSL.field("id").equal(id))
                 .fetchOneMap();
     }

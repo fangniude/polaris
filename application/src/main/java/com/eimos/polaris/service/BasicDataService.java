@@ -50,7 +50,7 @@ public class BasicDataService {
                 DSL.field(BasicDataService.EFFECTIVE_DATE, LocalDate.class),
                 DSL.field(BasicDataService.EXPIRED_DATE, LocalDate.class));
         return this.dslContext.select(list)
-                .from(DSL.name(Namespace.BD.schemaName(), entityName))
+                .from(DSL.name(Namespace.BD.tableName(entityName)))
                 .where(DSL.field("code").contains(DSL.value(queryKey))
                         .or(DSL.field("name").contains(DSL.value(queryKey))))
                 .limit(pageSize).offset((pageIndex - 1) * pageSize)
@@ -61,13 +61,13 @@ public class BasicDataService {
     }
 
     public void add(final String entityName, final BasicDataVo basicData) {
-        this.dslContext.insertInto(DSL.table(DSL.name(Namespace.BD.schemaName(), entityName)), Constants.BASIC_DATA_FIELDS)
+        this.dslContext.insertInto(DSL.table(DSL.name(Namespace.BD.tableName(entityName))), Constants.BASIC_DATA_FIELDS)
                 .values(IdUtil.getSnowflakeNextId(), basicData.getCode(), basicData.getName(), basicData.getEffectiveDate(), basicData.getExpiredDate(), 0L, 0L, LocalDateTime.now(), LocalDateTime.now())
                 .execute();
     }
 
     public void modify(final String entityName, final BasicDataVo basicData) {
-        this.dslContext.update(DSL.table(DSL.name(Namespace.BD.schemaName(), entityName)))
+        this.dslContext.update(DSL.table(DSL.name(Namespace.BD.tableName(entityName))))
                 .set(DSL.field("name"), basicData.getName())
                 .set(DSL.field(BasicDataService.EFFECTIVE_DATE), basicData.getEffectiveDate())
                 .set(DSL.field(BasicDataService.EXPIRED_DATE), basicData.getExpiredDate())
@@ -76,7 +76,7 @@ public class BasicDataService {
     }
 
     public void delete(final String entityName, final String code) {
-        this.dslContext.delete(DSL.table(DSL.name(Namespace.BD.schemaName(), entityName)))
+        this.dslContext.delete(DSL.table(DSL.name(Namespace.BD.tableName(entityName))))
                 .where(DSL.field("code").equal(code))
                 .execute();
     }

@@ -10,7 +10,7 @@ spring:
   application:
     name: Polaris
   datasource:
-    url: jdbc:postgresql://172.16.5.85:5432/xuelei_polaris
+    url: jdbc:postgresql://172.16.5.85:5432/xuelei_polaris?currentSchema=public
     username: postgres
     password: Zzh!@7465671
     driver-class-name: org.postgresql.Driver

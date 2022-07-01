@@ -17,7 +17,7 @@ public enum Namespace {
      */
     TD;
 
-    public String schemaName() {
-        return this.name().toLowerCase();
+    public String tableName(final String str) {
+        return String.format("%s_%s", this.name().toLowerCase(), str);
     }
 }
