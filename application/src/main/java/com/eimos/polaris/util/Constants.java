@@ -32,13 +32,8 @@ public final class Constants {
     public static final LocalDate MIN_DATE = LocalDate.of(1000, 1, 1);
     public static final LocalDate MAX_DATE = LocalDate.of(9999, 12, 31);
 
-    public static final List<Attribute> BASIC_DATA_ATTRIBUTES = List.of(new Attribute("id", "ID", DataType.INTEGER, IndexType.UNIQUE, false),
-            new Attribute("code", "编码", DataType.SHORT_TEXT, IndexType.UNIQUE, false),
+    public static final List<Attribute> BASIC_DATA_ATTRIBUTES = List.of(new Attribute("code", "编码", DataType.SHORT_TEXT, IndexType.UNIQUE, false),
             new Attribute("name", "名称", DataType.SHORT_TEXT, IndexType.NONE, false),
-            new Attribute("effective_date", "生效日期", DataType.DATE, IndexType.NONE, false),
-            new Attribute("expired_date", "过期日期", DataType.DATE, IndexType.NONE, false),
-            new Attribute("version", "版本", DataType.INTEGER, IndexType.NONE, false),
-            new Attribute("term", "任期", DataType.INTEGER, IndexType.NONE, false),
             new Attribute("create_time", "创建时间", DataType.DATE_TIME, IndexType.NONE, false),
             new Attribute("update_time", "更新时间", DataType.DATE_TIME, IndexType.NONE, false));
 

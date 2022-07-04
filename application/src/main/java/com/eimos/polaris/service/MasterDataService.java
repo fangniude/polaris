@@ -42,6 +42,10 @@ public class MasterDataService {
         this.metadataService.dropEntity(Namespace.MD, masterData.getName(), false);
     }
 
+    public void dropEntity(final String masterData, final boolean force) {
+        this.metadataService.dropEntity(Namespace.MD, masterData, force);
+    }
+
     public MasterDataEntityVo fetchEntity(final MasterDataType masterData) {
         final Entity entity = this.metadataService.findEntityNonNull(Namespace.MD, masterData.getName());
         final List<Reference> references = this.metadataService.findRelationsBySourceEntity(entity);

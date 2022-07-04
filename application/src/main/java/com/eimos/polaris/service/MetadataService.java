@@ -116,24 +116,27 @@ public class MetadataService {
     }
 
     private void dropEntity(final EntityEntity e, final boolean force) {
-        this.entityRepository.deleteById(e.getId());
-        if (force) {
-            final List<RelationEntity> relations = this.relationRepository.findByReferenceEntityId(e.getId());
-            if (CollUtil.isNotEmpty(relations)) {
-                // 删除所有关联
-                this.relationRepository.deleteAllByIdInBatch(relations.stream().map(RelationEntity::getId).toList());
+        final Optional<EntityEntity> optional = this.entityRepository.findById(e.getId());
+        if (optional.isPresent()) {
+            this.entityRepository.deleteById(e.getId());
+            if (force) {
+                final List<RelationEntity> relations = this.relationRepository.findByReferenceEntityId(e.getId());
+                if (CollUtil.isNotEmpty(relations)) {
+                    // 删除所有关联
+                    this.relationRepository.deleteAllByIdInBatch(relations.stream().map(RelationEntity::getId).toList());
 
-                final List<Long> sourceEntityIds = relations.stream().map(RelationEntity::getSourceEntityId).toList();
-                final List<EntityEntity> entities = this.entityRepository.findAllById(sourceEntityIds);
-                // 递归删除直接依赖当前实体 的 实体
-                for (final EntityEntity entity : entities) {
-                    this.dropEntity(entity, force);
+                    final List<Long> sourceEntityIds = relations.stream().map(RelationEntity::getSourceEntityId).toList();
+                    final List<EntityEntity> entities = this.entityRepository.findAllById(sourceEntityIds);
+                    // 递归删除直接依赖当前实体 的 实体
+                    for (final EntityEntity entity : entities) {
+                        this.dropEntity(entity, force);
+                    }
                 }
-            }
 
-            this.dslContext.dropTableIfExists(DSL.name(e.getNamespace().tableName(e.getName()))).cascade().execute();
-        } else {
-            this.dslContext.dropTableIfExists(DSL.name(e.getNamespace().tableName(e.getName()))).execute();
+                this.dslContext.dropTableIfExists(DSL.name(e.getNamespace().tableName(e.getName()))).cascade().execute();
+            } else {
+                this.dslContext.dropTableIfExists(DSL.name(e.getNamespace().tableName(e.getName()))).execute();
+            }
         }
     }
 
