@@ -46,12 +46,12 @@ public class BasicDataController {
     /**
      * 3. 删除没有使用的实体
      *
-     * @param code 实体名称
+     * @param entityName 实体名称
      */
-    @DeleteMapping("/entities/{code}")
-    public void drop(@PathVariable final String code,
+    @DeleteMapping("/entities/{entityName}")
+    public void drop(@PathVariable final String entityName,
                      @RequestParam(required = false, defaultValue = "false") final boolean force) {
-        this.service.drop(code, force);
+        this.service.drop(entityName, force);
     }
 
     /**

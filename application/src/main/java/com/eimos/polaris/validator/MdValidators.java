@@ -64,7 +64,7 @@ public class MdValidators {
 
     private static MdValidator validator(final String name) {
         return switch (name) {
-            case "制造产品", "物料" -> SpringUtil.getBean("");
+            case "制造产品", "物料" -> SpringUtil.getBean(Classifier.class);
             default -> null;
         };
     }

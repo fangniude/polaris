@@ -6,6 +6,7 @@ import com.eimos.polaris.domain.Reference;
 import com.eimos.polaris.enums.Namespace;
 import com.eimos.polaris.validator.MdValidators;
 import com.eimos.polaris.vo.AttributeVo;
+import com.eimos.polaris.vo.EntityVo;
 import com.eimos.polaris.vo.MasterDataEntityVo;
 import org.jooq.Record;
 import org.jooq.*;
@@ -30,6 +31,10 @@ public class MasterDataService {
     public MasterDataService(final MetadataService metadataService, final DSLContext dslContext) {
         this.metadataService = metadataService;
         this.dslContext = dslContext;
+    }
+
+    public List<EntityVo> entities(final String queryKey, final int pageIndex, final int pageSize) {
+        return this.metadataService.entities(Namespace.MD, queryKey, pageIndex, pageSize);
     }
 
     public void createEntity(final MasterDataEntityVo entity) {

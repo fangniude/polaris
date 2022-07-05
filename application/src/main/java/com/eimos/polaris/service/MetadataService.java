@@ -43,11 +43,17 @@ public class MetadataService {
         this.dslContext = dslContext;
     }
 
-    public List<EntityVo> basicDataEntities(final String queryKey, final int pageIndex, final int pageSize) {
+    public List<EntityVo> entities(final Namespace namespace, final String queryKey, final int pageIndex, final int pageSize) {
         final List<EntityEntity> list = this.entityRepository.findByNameContainsOrCommentContains(queryKey, queryKey, PageRequest.of(pageIndex - 1, pageSize));
 
         return list.stream()
-                .filter(e -> e.getNamespace() == Namespace.BD)
+                .filter(e -> {
+                    if (namespace == null) {
+                        return true;
+                    } else {
+                        return e.getNamespace() == namespace;
+                    }
+                })
                 .map(EntityVo::valueOf)
                 .toList();
     }
