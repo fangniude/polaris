@@ -13,6 +13,7 @@ import lombok.experimental.Accessors;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author lipengpeng
@@ -65,6 +66,20 @@ public class Entity {
     public void deleteAttribute(final String attributeName) {
         this.attributes = this.attributes.stream()
                 .filter(a -> !Objects.equals(a.getName(), attributeName))
+                .toList();
+    }
+
+    public List<Attribute> requiredAttributes() {
+        return this.attributes.stream()
+                .filter(a -> !a.getNullable())
+                .filter(a -> !Set.of("id", "create_time", "update_time").contains(a.getName()))
+                .toList();
+    }
+
+    public List<Attribute> requiredAttributesWithId() {
+        return this.attributes.stream()
+                .filter(a -> !a.getNullable())
+                .filter(a -> !Set.of("create_time", "update_time").contains(a.getName()))
                 .toList();
     }
 

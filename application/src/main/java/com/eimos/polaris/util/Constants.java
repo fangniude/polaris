@@ -25,7 +25,7 @@ public final class Constants {
      */
     public static final LocalDateTime MAX_DATE_TIME = LocalDateTime.of(9999, 12, 31, 23, 59, 59);
     /**
-     * 从主耶稣开始，差不多了
+     * 为了格式化方便，年份需要4位，定于 1000年到9999年
      */
     public static final LocalDateTime MIN_DATE_TIME = LocalDateTime.of(1000, 1, 1, 0, 0, 0);
 
@@ -42,4 +42,5 @@ public final class Constants {
             .map(DSL::name)
             .map(DSL::field)
             .toList();
+    public static final String SOURCE_CODE = "源系统编码";
 }

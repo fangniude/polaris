@@ -10,7 +10,6 @@ import com.eimos.polaris.service.MasterDataService;
 import com.eimos.polaris.vo.AttributeVo;
 import com.eimos.polaris.vo.EntityVo;
 import com.eimos.polaris.vo.MasterDataEntityVo;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -184,7 +183,7 @@ class XueLeiDdlTest {
         this.masterDataService = masterDataService;
     }
 
-    @Test
+    //    @Test
     public void test() {
         this.dropAllBasicData();
         this.dropAllMasterData();

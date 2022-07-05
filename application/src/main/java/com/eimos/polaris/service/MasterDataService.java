@@ -3,18 +3,16 @@ package com.eimos.polaris.service;
 import cn.hutool.core.util.IdUtil;
 import com.eimos.polaris.domain.Entity;
 import com.eimos.polaris.domain.Reference;
-import com.eimos.polaris.enums.MasterDataType;
 import com.eimos.polaris.enums.Namespace;
+import com.eimos.polaris.validator.MdValidators;
 import com.eimos.polaris.vo.AttributeVo;
 import com.eimos.polaris.vo.MasterDataEntityVo;
 import org.jooq.Record;
 import org.jooq.*;
 import org.jooq.impl.DSL;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -38,46 +36,40 @@ public class MasterDataService {
         this.metadataService.createEntityWithRelation(entity.toEntity(), entity.toReferences());
     }
 
-    public void dropEntity(final MasterDataType masterData) {
-        this.metadataService.dropEntity(Namespace.MD, masterData.getName(), false);
+    public void dropEntity(final String entityName) {
+        this.metadataService.dropEntity(Namespace.MD, entityName, false);
     }
 
-    public void dropEntity(final String masterData, final boolean force) {
-        this.metadataService.dropEntity(Namespace.MD, masterData, force);
+    public void dropEntity(final String entityName, final boolean force) {
+        this.metadataService.dropEntity(Namespace.MD, entityName, force);
     }
 
-    public MasterDataEntityVo fetchEntity(final MasterDataType masterData) {
-        final Entity entity = this.metadataService.findEntityNonNull(Namespace.MD, masterData.getName());
+    public MasterDataEntityVo fetchEntity(final String entityName) {
+        final Entity entity = this.metadataService.findEntityNonNull(Namespace.MD, entityName);
         final List<Reference> references = this.metadataService.findRelationsBySourceEntity(entity);
 
         return MasterDataEntityVo.fromEntity(entity, references);
     }
 
-    public void createAttribute(final MasterDataType masterData, final AttributeVo attribute) {
-        this.metadataService.createAttribute(Namespace.MD, masterData.getName(), attribute);
+    public void createAttribute(final String entityName, final AttributeVo attribute) {
+        this.metadataService.createAttribute(Namespace.MD, entityName, attribute);
     }
 
-    public void alterAttribute(final MasterDataType masterData, final AttributeVo attribute) {
-        this.metadataService.alterAttribute(Namespace.MD, masterData.getName(), attribute);
+    public void alterAttribute(final String entityName, final AttributeVo attribute) {
+        this.metadataService.alterAttribute(Namespace.MD, entityName, attribute);
     }
 
-    public void dropAttribute(final MasterDataType masterData, final String attributeName, final boolean force) {
-        this.metadataService.dropAttribute(Namespace.MD, masterData.getName(), attributeName, force);
+    public void dropAttribute(final String entityName, final String attributeName, final boolean force) {
+        this.metadataService.dropAttribute(Namespace.MD, entityName, attributeName, force);
     }
 
-    public List<Map<String, Object>> list(final MasterDataType masterData, final String queryKey, final int pageIndex, final int pageSize) {
-        final Entity entity = this.metadataService.findEntityNonNull(Namespace.MD, masterData.getName());
+    public List<Map<String, Object>> list(final String entityName, final int pageIndex, final int pageSize) {
+        final Entity entity = this.metadataService.findEntityNonNull(Namespace.MD, entityName);
 
         return this.dslContext.select(entity.getAttributes().stream()
                         .map(a -> DSL.field(DSL.name(a.getName()), a.getDataType().javaClass))
                         .toList())
-                .from(DSL.name(Namespace.MD.tableName(masterData.getName())))
-                .where(masterData.getSearchAttributes().stream()
-                        .map(DSL::name)
-                        .map(DSL::field)
-                        .map(f -> f.contains(DSL.value(queryKey)))
-                        .reduce(DSL::or)
-                        .orElse(DSL.trueCondition()))
+                .from(DSL.name(Namespace.MD.tableName(entityName)))
                 .limit(pageSize).offset((pageIndex - 1) * pageSize)
                 .fetchMaps();
     }
@@ -85,38 +77,14 @@ public class MasterDataService {
     /**
      * 事务隔离级别 需要串行化，防止多条数据进入系统
      *
-     * @param masterData 主数据
+     * @param entityName 主数据
      * @param data       数据
      * @return ID
      */
     @Transactional(isolation = Isolation.SERIALIZABLE, rollbackFor = Exception.class)
-    public long add(final MasterDataType masterData, final Map<String, Object> data) {
-        if (masterData == MasterDataType.PRODUCT || masterData == MasterDataType.MATERIAL) {
-            final MasterDataEntityVo entityVo = this.fetchEntity(masterData);
-            final List<AttributeVo> attributes = entityVo.getAttributes();
-            final List<AttributeVo> fkAttributes = attributes.stream().filter(AttributeVo::getForeignKey).toList();
-
-            // 校验 产品物料 有没有重复的
-            final Map<String, Object> map = this.dslContext.select(attributes.stream()
-                            .map(a -> DSL.field(DSL.name(a.getName()), a.getDataType().javaClass))
-                            .toList())
-                    .from(DSL.name(Namespace.MD.tableName(masterData.getName())))
-                    .where(fkAttributes.stream()
-                            .map(a -> {
-                                final Object value = data.get(a.getName());
-                                if (value == null) {
-                                    return DSL.field(DSL.name(a.getName())).isNull();
-                                } else {
-                                    return DSL.field(DSL.name(a.getName())).equal(DSL.value(value));
-                                }
-                            })
-                            .reduce(DSL.trueCondition(), DSL::and))
-                    .limit(1)
-                    .fetchOneMap();
-            if (map != null) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, String.format("主数据已经存在，源系统编码：【%s】", map.get(MasterDataType.Constants.SOURCE_CODE)));
-            }
-        }
+    public long add(final String entityName, final Map<String, Object> data) {
+        final Entity entity = this.metadataService.findEntityNonNull(Namespace.MD, entityName);
+        MdValidators.checkAdd(entity, data);
 
         final List<Field<?>> fields = new ArrayList<>(data.size() + 1);
         final List<Field<?>> values = new ArrayList<>(data.size() + 1);
@@ -134,42 +102,18 @@ public class MasterDataService {
             values.add(DSL.value(entry.getValue()));
         }
 
-        this.dslContext.insertInto(DSL.table(DSL.name(Namespace.MD.tableName(masterData.getName()))), fields)
+        this.dslContext.insertInto(DSL.table(DSL.name(Namespace.MD.tableName(entityName))), fields)
                 .values(values)
                 .execute();
         return id;
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE, rollbackFor = Exception.class)
-    public void modify(final MasterDataType masterData, final Map<String, Object> data) {
-        if (masterData == MasterDataType.PRODUCT || masterData == MasterDataType.MATERIAL) {
-            final MasterDataEntityVo entityVo = this.fetchEntity(masterData);
-            final List<AttributeVo> attributes = entityVo.getAttributes();
-            final List<AttributeVo> fkAttributes = attributes.stream().filter(AttributeVo::getForeignKey).toList();
+    public void modify(final String entityName, final Map<String, Object> data) {
+        final Entity entity = this.metadataService.findEntityNonNull(Namespace.MD, entityName);
+        MdValidators.checkModify(entity, data);
 
-            // 校验 产品物料 有没有重复的
-            final Map<String, Object> map = this.dslContext.select(attributes.stream()
-                            .map(a -> DSL.field(DSL.name(a.getName()), a.getDataType().javaClass))
-                            .toList())
-                    .from(DSL.name(Namespace.MD.tableName(masterData.getName())))
-                    .where(DSL.field(DSL.name("id")).ne(DSL.value(data.get("id"))).and(fkAttributes.stream()
-                            .map(a -> {
-                                final Object value = data.get(a.getName());
-                                if (value == null) {
-                                    return DSL.field(DSL.name(a.getName())).isNull();
-                                } else {
-                                    return DSL.field(DSL.name(a.getName())).equal(DSL.value(value));
-                                }
-                            })
-                            .reduce(DSL.trueCondition(), DSL::and)))
-                    .limit(1)
-                    .fetchOneMap();
-            if (map != null) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, String.format("主数据已经存在，源系统编码：%s", map.get(MasterDataType.Constants.SOURCE_CODE)));
-            }
-        }
-
-        final UpdateSetFirstStep<Record> update = this.dslContext.update(DSL.table(DSL.name(Namespace.MD.tableName(masterData.getName()))));
+        final UpdateSetFirstStep<Record> update = this.dslContext.update(DSL.table(DSL.name(Namespace.MD.tableName(entityName))));
         UpdateSetMoreStep<Record> updateMore = update.set(DSL.field(DSL.name("update_time")), LocalDateTime.now());
         for (final Map.Entry<String, Object> entry : data.entrySet()) {
             updateMore = updateMore.set(DSL.field(DSL.name(entry.getKey())), entry.getValue());
@@ -178,19 +122,22 @@ public class MasterDataService {
                 .execute();
     }
 
-    public void delete(final MasterDataType masterData, final long id) {
-        this.dslContext.delete(DSL.table(DSL.name(Namespace.MD.tableName(masterData.getName()))))
+    public void delete(final String entityName, final long id) {
+        final Entity entity = this.metadataService.findEntityNonNull(Namespace.MD, entityName);
+        MdValidators.checkDelete(entity, id);
+
+        this.dslContext.delete(DSL.table(DSL.name(Namespace.MD.tableName(entityName))))
                 .where(DSL.field(DSL.name("id")).equal(id))
                 .execute();
     }
 
-    public Map<String, Object> fetch(final MasterDataType masterData, final long id) {
-        final Entity entity = this.metadataService.findEntityNonNull(Namespace.MD, masterData.getName());
+    public Map<String, Object> fetch(final String entityName, final long id) {
+        final Entity entity = this.metadataService.findEntityNonNull(Namespace.MD, entityName);
 
         return this.dslContext.select(entity.getAttributes().stream()
                         .map(a -> DSL.field(DSL.name(a.getName()), a.getDataType().javaClass))
                         .toList())
-                .from(DSL.name(Namespace.MD.tableName(masterData.getName())))
+                .from(DSL.name(Namespace.MD.tableName(entityName)))
                 .where(DSL.field("id").equal(id))
                 .fetchOneMap();
     }

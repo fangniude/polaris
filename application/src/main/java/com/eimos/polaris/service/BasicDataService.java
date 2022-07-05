@@ -12,7 +12,6 @@ import org.jooq.impl.DSL;
 import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -46,31 +45,25 @@ public class BasicDataService {
 
     public List<BasicDataVo> list(final String entityName, final String queryKey, final int pageIndex, final int pageSize) {
         final List<? extends Field<? extends Serializable>> list = List.of(DSL.field("code", String.class),
-                DSL.field("name", String.class),
-                DSL.field(BasicDataService.EFFECTIVE_DATE, LocalDate.class),
-                DSL.field(BasicDataService.EXPIRED_DATE, LocalDate.class));
+                DSL.field("name", String.class));
         return this.dslContext.select(list)
                 .from(DSL.name(Namespace.BD.tableName(entityName)))
                 .where(DSL.field("code").contains(DSL.value(queryKey))
                         .or(DSL.field("name").contains(DSL.value(queryKey))))
                 .limit(pageSize).offset((pageIndex - 1) * pageSize)
                 .fetch(r -> new BasicDataVo(r.get("code", String.class),
-                        r.get("name", String.class),
-                        r.get(BasicDataService.EFFECTIVE_DATE, LocalDate.class),
-                        r.get(BasicDataService.EXPIRED_DATE, LocalDate.class)));
+                        r.get("name", String.class)));
     }
 
     public void add(final String entityName, final BasicDataVo basicData) {
         this.dslContext.insertInto(DSL.table(DSL.name(Namespace.BD.tableName(entityName))), Constants.BASIC_DATA_FIELDS)
-                .values(IdUtil.getSnowflakeNextId(), basicData.getCode(), basicData.getName(), basicData.getEffectiveDate(), basicData.getExpiredDate(), 0L, 0L, LocalDateTime.now(), LocalDateTime.now())
+                .values(basicData.getCode(), basicData.getName(), LocalDateTime.now(), LocalDateTime.now())
                 .execute();
     }
 
     public void modify(final String entityName, final BasicDataVo basicData) {
         this.dslContext.update(DSL.table(DSL.name(Namespace.BD.tableName(entityName))))
                 .set(DSL.field("name"), basicData.getName())
-                .set(DSL.field(BasicDataService.EFFECTIVE_DATE), basicData.getEffectiveDate())
-                .set(DSL.field(BasicDataService.EXPIRED_DATE), basicData.getExpiredDate())
                 .where(DSL.field("code").equal(basicData.getCode()))
                 .execute();
     }

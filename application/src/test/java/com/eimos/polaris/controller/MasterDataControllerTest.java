@@ -1,13 +1,14 @@
 package com.eimos.polaris.controller;
 
 import cn.hutool.core.lang.Pair;
+import cn.hutool.core.util.IdUtil;
 import com.eimos.polaris.enums.DataType;
 import com.eimos.polaris.enums.IndexType;
-import com.eimos.polaris.enums.MasterDataType;
 import com.eimos.polaris.enums.Namespace;
 import com.eimos.polaris.vo.AttributeVo;
 import com.eimos.polaris.vo.BasicDataVo;
 import com.eimos.polaris.vo.EntityVo;
+import com.eimos.polaris.vo.MasterDataEntityVo;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static com.eimos.polaris.vo.AttributeVo.*;
 
 /**
  * @author lipengpeng
@@ -38,18 +41,25 @@ class MasterDataControllerTest {
         this.prepareBasicData();
 
         // 0. 产品不存在，抛出异常
-        Assertions.assertThrowsExactly(IllegalArgumentException.class, () -> this.controller.fetch(MasterDataType.PRODUCT.getName()));
+        final String entityName = "产品";
+        Assertions.assertThrowsExactly(IllegalArgumentException.class, () -> this.controller.fetch(entityName));
 
         // 1. 创建 产品表
-        this.controller.createEntity(MasterDataType.PRODUCT.basicModel());
-        Assertions.assertNotNull(this.controller.fetch(MasterDataType.PRODUCT.getName()));
+        this.controller.createEntity(new MasterDataEntityVo(IdUtil.getSnowflakeNextId(), Namespace.MD, entityName, entityName, List.of(id(),
+                createTime(),
+                updateTime(),
+                new AttributeVo("产品名称", "产品名称", DataType.SHORT_TEXT, IndexType.NAVIGABLE, false),
+                new AttributeVo("源系统编码", "源系统编码", DataType.SHORT_TEXT, IndexType.UNIQUE, false),
+                fk2bd("产品用途场景"),
+                fk2bd("产品功能"),
+                fk2bd("产品功能实现方式"))));
+        Assertions.assertNotNull(this.controller.fetch(entityName));
 
         // 2. 新增列
-        final String entityName = MasterDataType.PRODUCT.getName();
         this.controller.create(entityName,
                 new AttributeVo("香水调型", "香水调型", DataType.SHORT_TEXT, IndexType.NONE, true,
                         true, false, new AttributeVo.Ref(Namespace.BD, "香水调型", "code")));
-        Assertions.assertTrue(this.controller.fetch(MasterDataType.PRODUCT.getName()).getAttributes().stream().anyMatch(a -> Objects.equals(a.getName(), "香水调型")));
+        Assertions.assertTrue(this.controller.fetch(entityName).getAttributes().stream().anyMatch(a -> Objects.equals(a.getName(), "香水调型")));
 
         // 3. 新增数据，并查询
         final long id = this.controller.add(entityName, Map.of("产品名称", "abc",
@@ -88,7 +98,7 @@ class MasterDataControllerTest {
 
         // 7. 删除列
         this.controller.drop(entityName, "香水调型", false);
-        Assertions.assertFalse(this.controller.fetch(MasterDataType.PRODUCT.getName()).getAttributes().stream().anyMatch(a -> Objects.equals(a.getName(), "香水调型")));
+        Assertions.assertFalse(this.controller.fetch(entityName).getAttributes().stream().anyMatch(a -> Objects.equals(a.getName(), "香水调型")));
 
         // 8. 删除实体
         this.controller.dropEntity(entityName);
