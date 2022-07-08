@@ -14,14 +14,13 @@ import org.springframework.stereotype.Service;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author lipengpeng
  */
 @Service
 public class BasicDataService {
-    public static final String EFFECTIVE_DATE = "effective_date";
-    public static final String EXPIRED_DATE = "expired_date";
     private final MetadataService metadataService;
     private final DSLContext dslContext;
 
@@ -53,6 +52,17 @@ public class BasicDataService {
                 .limit(pageSize).offset((pageIndex - 1) * pageSize)
                 .fetch(r -> new BasicDataVo(r.get("code", String.class),
                         r.get("name", String.class)));
+    }
+
+    public Optional<BasicDataVo> fetch(final String entityName, final String code) {
+        final List<? extends Field<? extends Serializable>> list = List.of(DSL.field("code", String.class),
+                DSL.field("name", String.class));
+        final BasicDataVo bd = this.dslContext.select(list)
+                .from(DSL.name(Namespace.BD.tableName(entityName)))
+                .where(DSL.field("code").equal(DSL.value(code)))
+                .fetchOne(r -> new BasicDataVo(r.get("code", String.class),
+                        r.get("name", String.class)));
+        return Optional.ofNullable(bd);
     }
 
     public void add(final String entityName, final BasicDataVo basicData) {

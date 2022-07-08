@@ -10,6 +10,7 @@ import com.eimos.polaris.service.MasterDataService;
 import com.eimos.polaris.vo.AttributeVo;
 import com.eimos.polaris.vo.EntityVo;
 import com.eimos.polaris.vo.MasterDataEntityVo;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -97,6 +98,8 @@ class XueLeiDdlTest {
             "客户组织行业特征,客户组织编码,,,有序索引,客户组织编码,否,\n" +
             "客户组织行业特征,行业序号,,,,,否,\n" +
             "客户组织行业特征,行业编码,,是,,,否,\n" +
+            "客户组织行业特征,主要销售场景编码,,是,,,,销售场景\n" +
+            "客户组织行业特征,销售场景集合,长文本,,,,,\n" +
             "客户组织行业特征,客户组织类型编码,,是,,,,\n" +
             "客户组织行业特征,当前客户价值标签编码,,是,,,,客户价值标签\n" +
             "客户组织行业特征,预期客户价值标签编码,,是,,,,客户价值标签\n" +
@@ -131,6 +134,9 @@ class XueLeiDdlTest {
             "科目,科目名称,,,,,,\n" +
             "科目,科目类型编码,,是,,,,\n" +
             "科目,源数据编码,,,有序索引,,否,\n" +
+            "经营组织职能场景,经营组织编码,,,有序索引,经营组织编码,否,\n" +
+            "经营组织职能场景,职能场景列表,长文本,,,,,\n" +
+            "经营组织职能场景,职能场景匹配规则,长文本,,,,,\n" +
             "经营组织,经营组织编码,,,唯一索引,,否,\n" +
             "经营组织,经营组织名称,,,,,,\n" +
             "经营组织,经营组织简称,,,,,,\n" +
@@ -173,7 +179,8 @@ class XueLeiDdlTest {
             "物料BOM行", "制造产品工艺路线", "制造产品BOM", "制造产品BOM行", "销售产品",
             "销售产品子项", "供应商组织", "供应商组织行业特征", "供应商物料", "供应商法人",
             "供应商自然人", "客户组织", "客户组织行业特征", "客户法人", "客户自然人",
-            "经营组织", "经营组织行业特征", "经营组织法人", "经营组织自然人", "科目");
+            "经营组织", "经营组织行业特征", "经营组织法人", "经营组织自然人", "科目",
+            "经营组织职能场景");
     private final BasicDataService basicDataService;
     private final MasterDataService masterDataService;
 
@@ -183,7 +190,7 @@ class XueLeiDdlTest {
         this.masterDataService = masterDataService;
     }
 
-    //    @Test
+    @Test
     public void test() {
         this.dropAllBasicData();
         this.dropAllMasterData();

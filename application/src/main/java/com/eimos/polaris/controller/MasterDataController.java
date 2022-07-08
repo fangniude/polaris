@@ -41,7 +41,7 @@ public class MasterDataController {
     }
 
     /**
-     * 1. 查询主数据实体
+     * 0. 查询主数据实体信息列表
      *
      * @return 实体，含外键
      */
