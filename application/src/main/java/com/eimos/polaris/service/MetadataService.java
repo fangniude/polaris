@@ -117,7 +117,7 @@ public class MetadataService {
      */
     @Transactional(rollbackFor = Exception.class)
     public void dropEntity(final Namespace namespace, final String entityName, final boolean force) {
-        final Optional<EntityEntity> optional = this.entityRepository.findOneByNamespaceAndName(namespace, entityName);
+        final Optional<EntityEntity> optional = this.findEntity(namespace, entityName);
         optional.ifPresent(e -> this.dropEntity(e, force));
     }
 
@@ -225,12 +225,16 @@ public class MetadataService {
     }
 
     public Entity findEntityNonNull(final Namespace namespace, final String entityName) {
-        final Optional<EntityEntity> optional = this.entityRepository.findOneByNamespaceAndName(namespace, entityName);
+        final Optional<EntityEntity> optional = this.findEntity(namespace, entityName);
         if (optional.isPresent()) {
             return new Entity(optional.get());
         } else {
             throw new IllegalArgumentException(String.format("entity not exists, namespace: %s, entity: %s", namespace, entityName));
         }
+    }
+
+    public Optional<EntityEntity> findEntity(final Namespace namespace, final String entityName) {
+        return this.entityRepository.findOneByNamespaceAndName(namespace, entityName);
     }
 
     public List<Reference> findRelationsBySourceEntity(final Entity entity) {

@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -83,11 +84,12 @@ public class MasterDataService {
      * 事务隔离级别 需要串行化，防止多条数据进入系统
      *
      * @param entityName 主数据
-     * @param data       数据
+     * @param row        数据
      * @return ID
      */
     @Transactional(isolation = Isolation.SERIALIZABLE, rollbackFor = Exception.class)
-    public long add(final String entityName, final Map<String, Object> data) {
+    public long add(final String entityName, final Map<String, Object> row) {
+        final Map<String, Object> data = new HashMap<>(row);
         final Entity entity = this.metadataService.findEntityNonNull(Namespace.MD, entityName);
         MdValidators.checkAdd(entity, data);
 
@@ -114,10 +116,15 @@ public class MasterDataService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE, rollbackFor = Exception.class)
-    public void modify(final String entityName, final Map<String, Object> data) {
+    public void modify(final String entityName, final Map<String, Object> row) {
+        final Map<String, Object> data = new HashMap<>(row);
         final Entity entity = this.metadataService.findEntityNonNull(Namespace.MD, entityName);
         MdValidators.checkModify(entity, data);
 
+        this.modifyInternal(entityName, data);
+    }
+
+    public void modifyInternal(final String entityName, final Map<String, Object> data) {
         final UpdateSetFirstStep<Record> update = this.dslContext.update(DSL.table(DSL.name(Namespace.MD.tableName(entityName))));
         UpdateSetMoreStep<Record> updateMore = update.set(DSL.field(DSL.name("update_time")), LocalDateTime.now());
         for (final Map.Entry<String, Object> entry : data.entrySet()) {

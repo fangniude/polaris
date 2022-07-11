@@ -74,7 +74,7 @@ public class AttributeVo {
     }
 
     public static AttributeVo fk2bd(final String name) {
-        return new AttributeVo(name, name, DataType.SHORT_TEXT, IndexType.NONE, true,
+        return new AttributeVo(name + "编码", name + "编码", DataType.SHORT_TEXT, IndexType.NONE, true,
                 true, false, new AttributeVo.Ref(Namespace.BD, name, "code"));
     }
 

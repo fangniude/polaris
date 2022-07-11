@@ -64,28 +64,28 @@ class MasterDataControllerTest {
         // 3. 新增数据，并查询
         final long id = this.controller.add(entityName, Map.of("产品名称", "abc",
                 "源系统编码", "01",
-                "产品用途场景", "01",
-                "产品功能", "01",
-                "产品功能实现方式", "01",
+                "产品用途场景编码", "01",
+                "产品功能编码", "01",
+                "产品功能实现方式编码", "01",
                 "香水调型", "01"));
         final Map<String, Object> map = this.controller.fetch(entityName, id);
-        Assertions.assertEquals(map.get("产品用途场景"), "01");
-        Assertions.assertEquals(map.get("产品功能"), "01");
-        Assertions.assertEquals(map.get("产品功能实现方式"), "01");
+        Assertions.assertEquals(map.get("产品用途场景编码"), "01");
+        Assertions.assertEquals(map.get("产品功能编码"), "01");
+        Assertions.assertEquals(map.get("产品功能实现方式编码"), "01");
         Assertions.assertEquals(map.get("香水调型"), "01");
 
         // 4. 修改数据，并查询
         this.controller.modify(entityName, Map.of("id", id,
                 "产品名称", "abc",
                 "源系统编码", "02",
-                "产品用途场景", "02",
-                "产品功能", "02",
-                "产品功能实现方式", "02",
+                "产品用途场景编码", "02",
+                "产品功能编码", "02",
+                "产品功能实现方式编码", "02",
                 "香水调型", "02"));
         final Map<String, Object> map1 = this.controller.fetch(entityName, id);
-        Assertions.assertEquals(map1.get("产品用途场景"), "02");
-        Assertions.assertEquals(map1.get("产品功能"), "02");
-        Assertions.assertEquals(map1.get("产品功能实现方式"), "02");
+        Assertions.assertEquals(map1.get("产品用途场景编码"), "02");
+        Assertions.assertEquals(map1.get("产品功能编码"), "02");
+        Assertions.assertEquals(map1.get("产品功能实现方式编码"), "02");
         Assertions.assertEquals(map1.get("香水调型"), "02");
 
         // 5. 删除数据，并查询
@@ -102,6 +102,12 @@ class MasterDataControllerTest {
 
         // 8. 删除实体
         this.controller.dropEntity(entityName);
+
+        // 9. 删除所有基础数据
+        final List<EntityVo> entityVos = this.basicDataController.entities("", 1000, 1);
+        for (final EntityVo entityVo : entityVos) {
+            this.basicDataController.drop(entityVo.getName(), true);
+        }
     }
 
     private void prepareBasicData() {

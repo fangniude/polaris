@@ -45,7 +45,7 @@ public class ManufactureClassificationController {
     public ManufactureClassification fetch(@PathVariable final String entityName,
                                            @PathVariable final String code) {
         this.check(entityName);
-        return this.service.fetch(entityName, code);
+        return this.service.fetch(entityName, code).orElse(null);
     }
 
     /**

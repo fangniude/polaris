@@ -54,7 +54,7 @@ public class Classifier implements MdValidator {
         // 2. 处理 定义的 性能特征，为空 则 补空字符串，并生成 性能特征组合编码
         final String specJsonName = ManufactureClassification.SPECS_MAP.get(entityName);
         final String specCodeName = ManufactureClassification.SPEC.get(entityName);
-        final ManufactureClassification fetch = this.classificationService.fetch(NAMES.get(entityName), classification.encode());
+        final ManufactureClassification fetch = this.classificationService.fetchNonNull(NAMES.get(entityName), classification.encode());
         final List<ManufactureSpecValues.SpecVal> specValues = fetch.getSpecs().stream()
                 .map(s -> new ManufactureSpecValues.SpecVal(s, data.containsKey(s) ? String.valueOf(data.get(s)) : ""))
                 .toList();
@@ -81,6 +81,11 @@ public class Classifier implements MdValidator {
                         .reduce(DSL.trueCondition(), DSL::and))
                 .limit(1)
                 .fetchOneMap();
+
+        // 4. 清除性能特征字段
+        for (final String spec : fetch.getSpecs()) {
+            data.remove(spec);
+        }
         if (map != null) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, String.format("主数据已经存在，源系统编码：【%s】", map.get(Constants.SOURCE_CODE)));
         }
@@ -114,7 +119,7 @@ public class Classifier implements MdValidator {
         // 2. 处理 定义的 性能特征，为空 则 补空字符串，并生成 性能特征组合编码
         final String specJsonName = ManufactureClassification.SPECS_MAP.get(entityName);
         final String specCodeName = ManufactureClassification.SPEC.get(entityName);
-        final ManufactureClassification fetch = this.classificationService.fetch(NAMES.get(entityName), classification.encode());
+        final ManufactureClassification fetch = this.classificationService.fetchNonNull(NAMES.get(entityName), classification.encode());
         final List<ManufactureSpecValues.SpecVal> specValues = fetch.getSpecs().stream()
                 .map(s -> new ManufactureSpecValues.SpecVal(s, data.containsKey(s) ? String.valueOf(data.get(s)) : ""))
                 .toList();
@@ -141,6 +146,11 @@ public class Classifier implements MdValidator {
                         .reduce(DSL.trueCondition(), DSL::and)))
                 .limit(1)
                 .fetchOneMap();
+
+        // 4. 清除性能特征字段
+        for (final String spec : fetch.getSpecs()) {
+            data.remove(spec);
+        }
         if (map != null) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, String.format("主数据已经存在，源系统编码：【%s】", map.get(Constants.SOURCE_CODE)));
         }

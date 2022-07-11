@@ -2,6 +2,7 @@ package com.eimos.polaris.service;
 
 import com.eimos.polaris.domain.Entity;
 import com.eimos.polaris.domain.ManufactureClassification;
+import com.eimos.polaris.entity.EntityEntity;
 import com.eimos.polaris.enums.Namespace;
 import com.eimos.polaris.vo.BasicDataVo;
 import com.eimos.polaris.vo.EntityVo;
@@ -15,10 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.annotation.PostConstruct;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -43,7 +41,7 @@ public class ManufactureClassificationService {
     }
 
     @PostConstruct
-    private void init() {
+    public void init() {
         this.createIfNotExists(ManufactureClassificationService.NAMES.values());
     }
 
@@ -64,10 +62,13 @@ public class ManufactureClassificationService {
                 .toList();
     }
 
-    public ManufactureClassification fetch(final String entityName, final String code) {
-        final Optional<BasicDataVo> bd = this.basicDataService.fetch(entityName, code);
-        return bd.map(ManufactureClassification::fromBd)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("实体[%s]的编码[%s]不存在", entityName, code)));
+    public ManufactureClassification fetchNonNull(final String entityName, final String code) {
+        final Optional<ManufactureClassification> bd = this.fetch(entityName, code);
+        return bd.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("实体[%s]的编码[%s]不存在", entityName, code)));
+    }
+
+    public Optional<ManufactureClassification> fetch(final String entityName, final String code) {
+        return this.basicDataService.fetch(entityName, code).map(ManufactureClassification::fromBd);
     }
 
     public void add(final String entityName, final ManufactureClassification classification) {
@@ -80,7 +81,7 @@ public class ManufactureClassificationService {
         final List<Map<String, Object>> data = this.findByClassificationCode(mdEntityName, classification.getCode());
         for (final Map<String, Object> row : data) {
             final Map<String, Object> newRow = classification.trans(mdEntityName, row);
-            this.masterDataService.modify(mdEntityName, newRow);
+            this.masterDataService.modifyInternal(mdEntityName, newRow);
         }
     }
 
@@ -89,16 +90,20 @@ public class ManufactureClassificationService {
     }
 
     public List<Map<String, Object>> findByClassificationCode(final String mdEntityName, final String classificationCode) {
-        final Entity entity = this.metadataService.findEntityNonNull(Namespace.MD, mdEntityName);
+        final Optional<EntityEntity> optional = this.metadataService.findEntity(Namespace.MD, mdEntityName);
+        if (optional.isPresent()) {
+            final ManufactureClassification.Classification classification = ManufactureClassification.Classification.decode(classificationCode);
 
-        final ManufactureClassification.Classification classification = ManufactureClassification.Classification.decode(classificationCode);
-
-        return this.dslContext.select(entity.getAttributes().stream()
-                        .map(a -> DSL.field(DSL.name(a.getName()), a.getDataType().javaClass))
-                        .toList())
-                .from(DSL.name(Namespace.MD.tableName(mdEntityName)))
-                .where(classification.condition(mdEntityName))
-                .fetchMaps();
+            final Entity entity = new Entity(optional.get());
+            return this.dslContext.select(entity.getAttributes().stream()
+                            .map(a -> DSL.field(DSL.name(a.getName()), a.getDataType().javaClass))
+                            .toList())
+                    .from(DSL.name(Namespace.MD.tableName(mdEntityName)))
+                    .where(classification.condition(mdEntityName))
+                    .fetchMaps();
+        } else {
+            return Collections.emptyList();
+        }
     }
 
     public void delete(final String entityName, final String code) {
@@ -107,25 +112,15 @@ public class ManufactureClassificationService {
 
     @Transactional(isolation = Isolation.SERIALIZABLE, rollbackFor = Exception.class)
     public void add(final String entityName, final String code, final String spec) {
-        final Optional<BasicDataVo> bd = this.basicDataService.fetch(entityName, code);
-        if (bd.isPresent()) {
-            final ManufactureClassification classification = ManufactureClassification.fromBd(bd.get());
-            classification.addSpec(spec);
-            this.modify(entityName, classification);
-        } else {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("不存在[%s]的编码[%s]", entityName, code));
-        }
+        final ManufactureClassification classification = this.fetchNonNull(entityName, code);
+        classification.addSpec(spec);
+        this.modify(entityName, classification);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE, rollbackFor = Exception.class)
     public void delete(final String entityName, final String code, final String spec) {
-        final Optional<BasicDataVo> bd = this.basicDataService.fetch(entityName, code);
-        if (bd.isPresent()) {
-            final ManufactureClassification classification = ManufactureClassification.fromBd(bd.get());
-            classification.deleteSpec(spec);
-            this.modify(entityName, classification);
-        } else {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("不存在[%s]的编码[%s]", entityName, code));
-        }
+        final ManufactureClassification classification = this.fetchNonNull(entityName, code);
+        classification.deleteSpec(spec);
+        this.modify(entityName, classification);
     }
 }
