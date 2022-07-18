@@ -17,8 +17,8 @@ public interface EntityRepository extends JpaRepository<EntityEntity, Long> {
      *
      * @param name     实体名称
      * @param comment  实体注释
-     * @param pageable 分布
-     * @return 所有实体
+     * @param pageable 分页
+     * @return 所有列表
      */
     List<EntityEntity> findByNameContainsOrCommentContains(String name, String comment, Pageable pageable);
 
@@ -30,4 +30,16 @@ public interface EntityRepository extends JpaRepository<EntityEntity, Long> {
      * @return 实体
      */
     Optional<EntityEntity> findOneByNamespaceAndName(Namespace namespace, String name);
+
+    /**
+     * 根据 实体编码 和 实体名称查找，带分页
+     *
+     * @param namespace  命名空间
+     * @param name       实体名称
+     * @param namespace1 命名空间
+     * @param comment    实体注释
+     * @param pageable   分页
+     * @return 所有列表
+     */
+    List<EntityEntity> findByNamespaceAndNameContainsOrNamespaceAndCommentContains(Namespace namespace, String name, Namespace namespace1, String comment, Pageable pageable);
 }

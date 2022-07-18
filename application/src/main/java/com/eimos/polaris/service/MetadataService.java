@@ -58,6 +58,10 @@ public class MetadataService {
                 .toList();
     }
 
+    public List<EntityEntity> allEntities(final Namespace namespace, final String queryKey, final int pageIndex, final int pageSize) {
+        return this.entityRepository.findByNamespaceAndNameContainsOrNamespaceAndCommentContains(namespace, queryKey, namespace, queryKey, PageRequest.of(pageIndex - 1, pageSize));
+    }
+
     @Transactional(rollbackFor = Exception.class)
     public void createEntity(final Entity e) {
         // 1. 创建元数据

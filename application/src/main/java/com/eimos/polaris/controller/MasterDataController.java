@@ -1,8 +1,8 @@
 package com.eimos.polaris.controller;
 
+import com.eimos.polaris.domain.Entity;
 import com.eimos.polaris.service.MasterDataService;
 import com.eimos.polaris.vo.AttributeVo;
-import com.eimos.polaris.vo.EntityVo;
 import com.eimos.polaris.vo.MasterDataEntityVo;
 import com.google.common.base.Preconditions;
 import org.springframework.http.HttpStatus;
@@ -43,12 +43,12 @@ public class MasterDataController {
     /**
      * 0. 查询主数据实体信息列表
      *
-     * @return 实体，含外键
+     * @return 实体
      */
     @GetMapping("/entities")
-    public List<EntityVo> entities(@RequestParam(required = false, defaultValue = "") final String queryKey,
-                                   @RequestParam(required = false, defaultValue = "10000") final int pageSize,
-                                   @RequestParam(required = false, defaultValue = "1") final int pageIndex) {
+    public List<Entity> entities(@RequestParam(required = false, defaultValue = "") final String queryKey,
+                                 @RequestParam(required = false, defaultValue = "10000") final int pageSize,
+                                 @RequestParam(required = false, defaultValue = "1") final int pageIndex) {
         Preconditions.checkArgument(pageSize > 0, "pageSize must > 0");
         Preconditions.checkArgument(pageIndex > 0, "pageIndex must > 0");
 
@@ -61,7 +61,7 @@ public class MasterDataController {
      * @return 实体，含外键
      */
     @GetMapping("/entities/{entityName}")
-    public MasterDataEntityVo fetch(@PathVariable final String entityName) {
+    public Entity fetch(@PathVariable final String entityName) {
         return this.service.fetchEntity(entityName);
     }
 

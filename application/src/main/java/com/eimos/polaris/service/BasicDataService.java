@@ -30,7 +30,9 @@ public class BasicDataService {
     }
 
     public List<EntityVo> entities(final String queryKey, final int pageIndex, final int pageSize) {
-        return this.metadataService.entities(Namespace.BD, queryKey, pageIndex, pageSize);
+        return this.metadataService.allEntities(Namespace.BD, queryKey, pageIndex, pageSize).stream()
+                .map(EntityVo::valueOf)
+                .toList();
     }
 
     public void create(final EntityVo entity) {

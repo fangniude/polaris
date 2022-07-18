@@ -2,11 +2,10 @@ package com.eimos.polaris.service;
 
 import cn.hutool.core.util.IdUtil;
 import com.eimos.polaris.domain.Entity;
-import com.eimos.polaris.domain.Reference;
+import com.eimos.polaris.entity.EntityEntity;
 import com.eimos.polaris.enums.Namespace;
 import com.eimos.polaris.validator.MdValidators;
 import com.eimos.polaris.vo.AttributeVo;
-import com.eimos.polaris.vo.EntityVo;
 import com.eimos.polaris.vo.MasterDataEntityVo;
 import org.jooq.Record;
 import org.jooq.*;
@@ -34,8 +33,9 @@ public class MasterDataService {
         this.dslContext = dslContext;
     }
 
-    public List<EntityVo> entities(final String queryKey, final int pageIndex, final int pageSize) {
-        return this.metadataService.entities(Namespace.MD, queryKey, pageIndex, pageSize);
+    public List<Entity> entities(final String queryKey, final int pageIndex, final int pageSize) {
+        final List<EntityEntity> entities = this.metadataService.allEntities(Namespace.MD, queryKey, pageIndex, pageSize);
+        return entities.stream().map(Entity::new).toList();
     }
 
     public void createEntity(final MasterDataEntityVo entity) {
@@ -50,11 +50,8 @@ public class MasterDataService {
         this.metadataService.dropEntity(Namespace.MD, entityName, force);
     }
 
-    public MasterDataEntityVo fetchEntity(final String entityName) {
-        final Entity entity = this.metadataService.findEntityNonNull(Namespace.MD, entityName);
-        final List<Reference> references = this.metadataService.findRelationsBySourceEntity(entity);
-
-        return MasterDataEntityVo.fromEntity(entity, references);
+    public Entity fetchEntity(final String entityName) {
+        return this.metadataService.findEntityNonNull(Namespace.MD, entityName);
     }
 
     public void createAttribute(final String entityName, final AttributeVo attribute) {
